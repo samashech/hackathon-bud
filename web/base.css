@@ -20,9 +20,9 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 40rem) { :root { --gutter: 16px; --gap-columns: 16px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 
-/* The Hackathon-bud wordmark: Archivo expanded at 800 in capitals, the O of
+/* The Hackathon-bud wordmark: Panchang at 800 in capitals, the O of
    HACKATHON struck through like the measured face's zero, an amber hyphen. */
-.mark { display: inline-flex; align-items: center; font-family: var(--font-mark); font-weight: 800; font-stretch: 125%; font-size: 1.125rem; line-height: 1; letter-spacing: -0.01em; text-transform: uppercase; color: var(--color-ink); text-decoration: none; white-space: nowrap; }
+.mark { display: inline-flex; align-items: center; font-family: var(--font-mark); font-weight: 800; font-size: 1.05rem; line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--color-ink); text-decoration: none; white-space: nowrap; }
 .mark .o { position: relative; }
 .mark .o::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0.16em; height: 0.92em; background: currentColor; border-radius: 1px; transform: translate(-50%, -50%) rotate(32deg); box-shadow: 0 0 0 0.05em var(--color-paper); }
 .mark .dash { color: var(--color-accent); margin-inline: 0.04em; }

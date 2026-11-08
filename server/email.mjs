@@ -38,7 +38,7 @@ export async function send({ to, subject, html, text, unsubscribe }) {
 // They are Console's daylight colourway, which reads best in Gmail.
 const C = { paper: '#fbfaf7', panel: '#ffffff', well: '#f4f2ee', ink: '#2b2622', ink2: '#4a443e', muted: '#6b655f', rule: '#e6e2db', cool: '#2f63b8', amber: '#a86b00', amberInk: '#fffdf8' };
 const mono = "'Atkinson Hyperlegible Mono',ui-monospace,Menlo,Consolas,monospace";
-const sans = "'Host Grotesk',-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+const sans = "'Satoshi',-apple-system,'Segoe UI',Roboto,Arial,sans-serif";
 
 const fact = (label, value) => `<td valign="top" style="padding:8px 12px 8px 0;font:400 12px/1.4 ${sans};color:${C.muted}">${label}<div style="font:500 14px/1.4 ${mono};color:${C.ink};padding-top:2px">${value}</div></td>`;
 
@@ -72,7 +72,7 @@ function shell({ intro, body, site, unsubscribe }) {
   return `<!doctype html><html><body style="margin:0;background:${C.paper}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.paper}"><tr><td align="center" style="padding:28px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px">
-  <tr><td style="font:900 20px/1 'Archivo Black','Arial Black',Arial,sans-serif;letter-spacing:0.01em;text-transform:uppercase"><a href="${esc(site)}" style="color:${C.ink};text-decoration:none">Hackath&Oslash;n<span style="color:${C.amber}">-</span>bud</a></td></tr>
+  <tr><td style="font:800 20px/1 'Panchang','Arial Black',Arial,sans-serif;letter-spacing:0.01em;text-transform:uppercase"><a href="${esc(site)}" style="color:${C.ink};text-decoration:none">Hackath&Oslash;n<span style="color:${C.amber}">-</span>bud</a></td></tr>
   <tr><td style="padding-top:8px;font:400 15px/1.55 ${sans};color:${C.muted}">${intro}</td></tr>
   ${body}
   <tr><td style="padding-top:28px;font:400 12px/1.6 ${sans};color:${C.muted}">From Unstop, Devpost, Devfolio and MLH. Scored out of 100 on how many registered, the cash prize, who runs it and time left. <a href="${esc(site)}" style="color:${C.ink}">See every open hackathon</a>.${unsubscribe ? ` <a href="${esc(unsubscribe)}" style="color:${C.muted}">Stop these emails</a>.` : ''}</td></tr>

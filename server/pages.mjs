@@ -54,8 +54,8 @@ export function topRows(list) {
 export function messagePage({ title, body, action = '' }) {
   return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title><meta name="robots" content="noindex"><link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Archivo:wdth,wght@125,800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet"><link href="https://api.fontshare.com/v2/css?f[]=panchang@500,600,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/landing.css"></head><body><div class="grain" aria-hidden="true"></div>
 <header class="nav"><div class="container nav__inner"><a class="mark" href="/" aria-label="Hackathon-bud, home">Hackath<span class="o">o</span>n<span class="dash">-</span>bud</a><a href="/explore">All hackathons</a></div></header>
 <main class="section"><div class="container" style="max-width:44rem;margin-inline:0 auto"><h1 style="font-size:var(--text-section)">${esc(title)}</h1><p class="lead" style="margin-top:var(--space-lg)">${body}</p>${action ? `<div style="margin-top:var(--space-xl)">${action}</div>` : ''}</div></main>

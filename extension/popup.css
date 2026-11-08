@@ -17,7 +17,7 @@ h1 { margin: 0; font-size: var(--text-md); font-weight: 500; letter-spacing: var
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .head { display: grid; gap: var(--space-3xs); }
 .head p { margin: 0; color: var(--color-muted); font-size: var(--text-xs); }
-.mark { display: inline-flex; align-items: center; font-family: var(--font-mark); font-weight: 800; font-stretch: 125%; font-size: 0.95rem; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+.mark { display: inline-flex; align-items: center; font-family: var(--font-mark); font-weight: 800; font-size: 0.85rem; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .mark .o { position: relative; }
 .mark .o::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0.16em; height: 0.92em; background: currentColor; border-radius: 1px; transform: translate(-50%, -50%) rotate(32deg); box-shadow: 0 0 0 0.05em var(--color-paper); }
 .mark .dash { color: var(--color-accent); margin-inline: 0.04em; }

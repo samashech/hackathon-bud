@@ -2,13 +2,14 @@
  * hero: counter, the email field set large beside the email as it would go out now · nav: edge-aligned, the Hackathon-bud wordmark and two links · footer: colophon · imagery: the product, the live list · signature: the live list of open hackathons, each with its score in the measured face and its five facts · console: paper · texture: grain (paper), static, 0.07 page-wide, under the live field of ink marks
  * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 · weakest: P, a newsletter page is a known shape; the argument is the rules section, which says plainly whose taste this is and how it scores */
-/* waive 64: scores, prize pools, registrations and days are measured figures and use the mono face; every label and head stays in Host Grotesk */
+/* waive 64: scores, prize pools, registrations and days are measured figures and use the mono face; labels stay in Satoshi and heads in Panchang */
 
 @import url("tokens.css");
 @import url("base.css");
 
 :root[data-theme="light"] {
   /* Console's paper colourway, pulled warmer toward uncoated stock */
+  --color-glow: oklch(84% 0.11 78);
   --color-paper: oklch(96.4% 0.013 84); --color-paper-2: oklch(98.6% 0.007 84); --color-paper-3: oklch(93.6% 0.016 82);
   --color-rule: oklch(87.5% 0.014 82); --color-rule-2: oklch(77% 0.016 80);
   --color-ink: oklch(21% 0.012 60); --color-ink-2: oklch(34% 0.012 60); --color-muted: oklch(46% 0.012 62);
@@ -16,7 +17,7 @@
 }
 :root {
   --text-display: clamp(2.75rem, 4.6vw + 1rem, 5rem);
-  --text-section: clamp(2rem, 2.2vw + 1rem, 3.25rem);
+  --text-section: clamp(1.6rem, 1.8vw + 0.9rem, 2.6rem);
   --text-title: clamp(1.2rem, 0.6vw + 0.9rem, 1.5rem);
   --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.3rem);
   --gutter: 64px;
@@ -43,7 +44,7 @@
 .nav { border-bottom: var(--rule-hair) solid var(--color-rule); }
 .nav__inner { display: flex; align-items: center; gap: var(--space-lg); min-height: 64px; }
 .nav .mark { margin-right: auto; font-size: 1.25rem; }
-.nav a:not(.mark) { color: var(--color-muted); text-decoration: none; font-size: var(--text-sm); font-weight: 500; transition: color var(--dur-micro) var(--ease-out); }
+.nav a:not(.mark) { white-space: nowrap; color: var(--color-muted); text-decoration: none; font-size: var(--text-sm); font-weight: 500; transition: color var(--dur-micro) var(--ease-out); }
 .nav a:not(.mark):hover { color: var(--color-ink); }
 
 /* ---------- controls ---------- */
@@ -87,8 +88,21 @@
 /* ---------- hero ---------- */
 .hero { padding-block: var(--space-3xl) var(--space-2xl); }
 .hero__grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--space-3xl); align-items: center; min-height: min(calc(100svh - 64px - var(--space-3xl) - var(--space-2xl)), 640px); }
-.hero h1 { font-size: var(--text-display); max-width: 11ch; }
-.hero .lead { margin-top: var(--space-lg); }
+/* The hero head: Panchang in capitals, three tight lines, the live count of
+   strong hackathons as a superscript, a warm glow behind like ink on a lit sheet. */
+.hero__text { position: relative; isolation: isolate; }
+.hero__text::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: -18%; top: -22%; width: 120%; height: 95%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--color-glow) 55%, transparent), color-mix(in oklab, var(--color-glow) 18%, transparent) 55%, transparent);
+  filter: blur(24px);
+}
+.shout { font-size: clamp(2.1rem, 4.5vw, 4.4rem); font-weight: 600; text-transform: uppercase; line-height: 0.98; letter-spacing: -0.005em; max-width: none; color: var(--color-ink); }
+.shout > span { display: block; white-space: nowrap; }
+.shout__n { font-family: var(--font-display); font-weight: 500; font-size: 0.34em; line-height: 1; vertical-align: top; position: relative; top: 0.12em; margin-left: 0.18em; letter-spacing: 0; color: var(--color-accent); font-variant-numeric: tabular-nums; }
+.hero .lead { margin-top: var(--space-xl); }
+h2 { text-transform: uppercase; line-height: 1; }
+h3, .issue .t { font-family: var(--font-body); font-weight: 700; letter-spacing: -0.01em; }
 .hero .signup { margin-top: var(--space-xl); }
 
 /* the email as it would go out now */
@@ -136,7 +150,7 @@
 .how__head p { margin-top: var(--space-md); color: var(--color-muted); max-width: 32ch; }
 .rules { margin: 0; border-top: var(--rule-hair) solid var(--color-rule); }
 .rule { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 5fr); gap: var(--space-sm) var(--gap-columns); padding: var(--space-lg) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
-.rule dt { font-size: var(--text-title); font-weight: 500; letter-spacing: var(--tracking-display); line-height: 1.25; }
+.rule dt { font-size: var(--text-title); font-weight: 700; letter-spacing: var(--tracking-display); line-height: 1.25; }
 .rule dd { margin: 0; color: var(--color-ink-2); }
 .weights { list-style: none; margin: var(--space-md) 0 0; padding: 0; display: grid; gap: var(--space-sm); }
 .weights li { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 2.5rem; gap: var(--space-sm); align-items: center; font-size: var(--text-sm); }
@@ -166,11 +180,14 @@
 @media (max-width: 64rem) {
   .hero__grid, .mail, .how { grid-template-columns: minmax(0, 1fr); }
   .hero__grid { min-height: 0; max-height: none; gap: var(--space-2xl); }
+  .shout { font-size: min(7.4vw, 3.6rem); }
   .headblock { grid-template-columns: minmax(0, 1fr); }
   .hk__facts { grid-template-columns: repeat(3, minmax(0, auto)); }
 }
 @media (max-width: 40rem) {
   .nav a.hide-sm { display: none; }
+  .nav .mark { font-size: 0.9rem; }
+  .nav__inner { gap: var(--space-md); }
   .hero { padding-block: var(--space-xl) var(--space-xl); }
   .signup__row { grid-template-columns: minmax(0, 1fr); }
   .hk { grid-template-columns: 3.5rem minmax(0, 1fr); padding: var(--space-lg) 0; }
