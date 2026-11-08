@@ -130,6 +130,7 @@ async function landing() {
     .replaceAll('{{REGION_OPTIONS}}', regionOptions())
     .replaceAll('{{OPEN_COUNT}}', String(open.length))
     .replace('{{OTHERS}}', othersText)
+    .replace('{{FIELD_DATA}}', JSON.stringify(open.map((h) => [h.score.total, h.score.total >= 70 ? 1 : 0])))
     .replaceAll('{{FETCHED_AGO}}', data ? ago(data.fetchedAt) : 'shortly')
     .replace('{{ISSUE_SUBJECT}}', data ? `${strong.length} hackathons worth your weekend` : 'Fetching the first list')
     .replace('{{ISSUE_ROWS}}', issueRows(top.slice(0, 3)))

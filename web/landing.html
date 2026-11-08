@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Hackathon-bud: hackathons worth your weekend</title>
   <meta name="description" content="A daily email of open hackathons with real crowds and real cash prizes, from Unstop, Devpost, Devfolio and MLH. No account needed.">
-  <meta name="theme-color" content="#1b1d21">
+  <meta name="theme-color" content="#f6f1e7">
   <meta property="og:title" content="Hackathon-bud: hackathons worth your weekend">
   <meta property="og:description" content="One email when a hackathon with real crowds and cash opens. No account needed.">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -17,9 +17,12 @@
   <link rel="stylesheet" href="landing.css">
 </head>
 <body>
+  <canvas id="field" class="field" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <script type="application/json" id="field-data">{{FIELD_DATA}}</script>
   <header class="nav">
     <div class="container nav__inner">
-      <a class="mark" href="/" aria-label="Hackathon-bud, home">Hackath<span class="o">o</span>n<span class="dash">-</span>bud</a>
+      <a class="mark" data-quiet href="/" aria-label="Hackathon-bud, home">Hackath<span class="o">o</span>n<span class="dash">-</span>bud</a>
       <a class="hide-sm" href="#how">How it picks</a>
       <a href="/explore">All hackathons</a>
     </div>
@@ -29,9 +32,9 @@
     <section class="hero" aria-labelledby="hero-head">
       <div class="container hero__grid">
         <div>
-          <h1 id="hero-head">Hackathons worth your weekend.</h1>
-          <p class="lead">One email when a hackathon with real crowds and cash opens.</p>
-          <form class="signup" action="/subscribe" method="post" data-signup>
+          <h1 id="hero-head" data-quiet>Hackathons worth your weekend.</h1>
+          <p class="lead" data-quiet>One email when a hackathon with real crowds and cash opens.</p>
+          <form class="signup" action="/subscribe" method="post" data-signup data-quiet>
             <div class="signup__row">
               <label>Your email
                 <input type="email" name="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="you@example.com">
@@ -145,6 +148,7 @@
     </div>
   </footer>
 
+  <script type="module" src="field.js"></script>
   <script>
     // Subscribe without leaving the page; without JavaScript the form posts normally.
     for (const form of document.querySelectorAll('[data-signup]')) {

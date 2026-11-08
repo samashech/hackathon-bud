@@ -1,5 +1,5 @@
 /* Hallmark · shape: Index-First · genre: modern-minimal · theme: Console (deal: manual, scripts not run) · job: subscribe
- * hero: counter, the email field set large beside the email as it would go out now · nav: edge-aligned, the Hackathon-bud wordmark and two links · footer: colophon · imagery: the product, the live list · signature: the live list of open hackathons, each with its score in the measured face and its five facts · console: graphite
+ * hero: counter, the email field set large beside the email as it would go out now · nav: edge-aligned, the Hackathon-bud wordmark and two links · footer: colophon · imagery: the product, the live list · signature: the live list of open hackathons, each with its score in the measured face and its five facts · console: paper · texture: grain (paper), static, 0.07 page-wide, under the live field of ink marks
  * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 · weakest: P, a newsletter page is a known shape; the argument is the rules section, which says plainly whose taste this is and how it scores */
 /* waive 64: scores, prize pools, registrations and days are measured figures and use the mono face; every label and head stays in Host Grotesk */
@@ -7,6 +7,13 @@
 @import url("tokens.css");
 @import url("base.css");
 
+:root[data-theme="light"] {
+  /* Console's paper colourway, pulled warmer toward uncoated stock */
+  --color-paper: oklch(96.4% 0.013 84); --color-paper-2: oklch(98.6% 0.007 84); --color-paper-3: oklch(93.6% 0.016 82);
+  --color-rule: oklch(87.5% 0.014 82); --color-rule-2: oklch(77% 0.016 80);
+  --color-ink: oklch(21% 0.012 60); --color-ink-2: oklch(34% 0.012 60); --color-muted: oklch(46% 0.012 62);
+  --texture-opacity: 0.07;
+}
 :root {
   --text-display: clamp(2.75rem, 4.6vw + 1rem, 5rem);
   --text-section: clamp(2rem, 2.2vw + 1rem, 3.25rem);
@@ -20,6 +27,17 @@
 
 .lead { font-size: var(--text-lead); line-height: 1.45; color: var(--color-ink-2); max-width: 46ch; }
 .measured { font-family: var(--font-outlier); font-variant-numeric: tabular-nums slashed-zero; }
+
+/* ---------- paper and the live field ---------- */
+/* Layers: the field at the back, the grain over it, the page above both.
+   Neither layer takes input, so every control works as if they were not there. */
+.field { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; transition: opacity var(--dur-short) var(--ease-out); }
+.grain {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: var(--texture-opacity);
+  background-size: 200px 200px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 9 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+.nav, main, .footer { position: relative; z-index: 2; }
 
 /* ---------- nav ---------- */
 .nav { border-bottom: var(--rule-hair) solid var(--color-rule); }
@@ -89,7 +107,7 @@
 
 /* ---------- sections ---------- */
 .section { padding-block: var(--section-gap); }
-.section--band { background: var(--color-paper-3); border-block: var(--rule-hair) solid var(--color-rule); }
+.section--band { background: color-mix(in oklab, var(--color-paper-3) 88%, transparent); border-block: var(--rule-hair) solid var(--color-rule); }
 .headblock { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-lg) var(--gap-columns); align-items: end; margin-bottom: var(--space-2xl); }
 .headblock h2 { font-size: var(--text-section); }
 .headblock p { color: var(--color-muted); max-width: 44ch; }
