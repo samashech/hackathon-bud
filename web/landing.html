@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hackathon-bud: hackathons worth your weekend</title>
+  <meta name="description" content="A daily email of open hackathons with real crowds and real cash prizes, from Unstop, Devpost, Devfolio and MLH. No account needed.">
+  <meta name="theme-color" content="#1b1d21">
+  <meta property="og:title" content="Hackathon-bud: hackathons worth your weekend">
+  <meta property="og:description" content="One email when a hackathon with real crowds and cash opens. No account needed.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Archivo:wdth,wght@125,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="mark" href="/" aria-label="Hackathon-bud, home">Hackath<span class="o">o</span>n<span class="dash">-</span>bud</a>
+      <a class="hide-sm" href="#how">How it picks</a>
+      <a href="/explore">All hackathons</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-head">
+      <div class="container hero__grid">
+        <div>
+          <h1 id="hero-head">Hackathons worth your weekend.</h1>
+          <p class="lead">One email when a hackathon with real crowds and cash opens.</p>
+          <form class="signup" action="/subscribe" method="post" data-signup>
+            <div class="signup__row">
+              <label>Your email
+                <input type="email" name="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="you@example.com">
+              </label>
+              <label>Where you can go
+                <select name="region">{{REGION_OPTIONS}}</select>
+              </label>
+            </div>
+            <button class="btn btn--primary" type="submit">Send me the list</button>
+            <p class="signup__note" role="status">No account. Confirm with one click, leave with one click.</p>
+          </form>
+        </div>
+        <div class="issue" aria-label="The email, if it went out now">
+          <div class="issue__head">
+            <span class="issue__from">Hackathon-bud</span>
+            <span class="issue__subject">{{ISSUE_SUBJECT}}</span>
+          </div>
+          <ol>{{ISSUE_ROWS}}</ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="open" aria-labelledby="open-head">
+      <div class="container">
+        <div class="headblock">
+          <h2 id="open-head">Open right now</h2>
+          <p>The eight strongest of {{OPEN_COUNT}} open hackathons with a cash prize. Checked {{FETCHED_AGO}}.</p>
+        </div>
+        <ol class="hk-list">{{TOP_ROWS}}</ol>
+        <div class="more">
+          <span>{{OTHERS}}</span>
+          <a class="textlink" href="/explore">See all {{OPEN_COUNT}}, by region, mode or city</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--band" id="how" aria-labelledby="how-head">
+      <div class="container how">
+        <div class="how__head">
+          <h2 id="how-head">How it picks</h2>
+          <p>These are Sameer's rules for his own weekends. Friends get the same list, filtered by where they can go.</p>
+        </div>
+        <dl class="rules">
+          <div class="rule">
+            <dt>Where it looks</dt>
+            <dd>Unstop, Devpost, Devfolio and MLH, checked every six hours.</dd>
+          </div>
+          <div class="rule">
+            <dt>What it keeps</dt>
+            <dd>Registration still open and a cash prize named on the listing. In person only within India; from abroad, only events you can join online.</dd>
+          </div>
+          <div class="rule">
+            <dt>What it keeps apart</dt>
+            <dd>Ideathons, where you pitch an idea without building it, and promptathons, where you compete on prompts. The sites file both under hackathons; here they get their own lists and stay out of the email unless you ask for them.</dd>
+          </div>
+          <div class="rule">
+            <dt>How it scores</dt>
+            <dd>
+              Out of 100, from five parts. Registrations and prizes count on a log scale, so 2,000 sign-ups beats 200 by a lot and 20,000 beats 2,000 by less.
+              <ul class="weights">
+                <li><span>People registered</span><span class="bar"><i style="--v:1"></i></span><span class="pts">34</span></li>
+                <li><span>Prize pool</span><span class="bar"><i style="--v:1"></i></span><span class="pts">34</span></li>
+                <li><span>Who runs it</span><span class="bar"><i style="--v:0.588"></i></span><span class="pts">20</span></li>
+                <li><span>Time to register</span><span class="bar"><i style="--v:0.206"></i></span><span class="pts">7</span></li>
+                <li><span>Sameer's interests</span><span class="bar"><i style="--v:0.147"></i></span><span class="pts">5</span></li>
+              </ul>
+            </dd>
+          </div>
+          <div class="rule">
+            <dt>What the score means</dt>
+            <dd>
+              <span class="tiers"><span>Marquee <span class="measured">70+</span></span><span>Strong <span class="measured">52+</span></span><span>Decent <span class="measured">35+</span></span><span>Thin below that</span></span>
+              The email only carries Strong and Marquee.
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section" id="subscribe" aria-labelledby="mail-head">
+      <div class="container mail">
+        <div>
+          <h2 id="mail-head">The email</h2>
+          <dl class="mail__facts">
+            <dt>When</dt><dd>8:00 in the morning, India time, only on days something new and strong opens.</dd>
+            <dt>What</dt><dd>New hackathons scoring 52 or more, and strong ones closing within three days. Ideathons and promptathons only if you tick the box.</dd>
+            <dt>Where</dt><dd>Online events, plus in-person ones in the part of India you pick.</dd>
+            <dt>Cost</dt><dd>Nothing. No account and no password.</dd>
+            <dt>Leaving</dt><dd>One link at the foot of every email.</dd>
+          </dl>
+        </div>
+        <form class="signup" action="/subscribe" method="post" data-signup>
+          <h3>Get it</h3>
+          <label>Your email
+            <input type="email" name="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="you@example.com">
+          </label>
+          <label>Where you can go
+            <select name="region">{{REGION_OPTIONS}}</select>
+          </label>
+          <label class="signup__check"><input type="checkbox" name="others" value="1"> Also ideathons and promptathons</label>
+          <button class="btn btn--primary" type="submit">Send me the list</button>
+          <p class="signup__note" role="status">The first email is today's best, right after you confirm.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Hackathon-bud is built by Sameer for himself and his friends. Listings and figures come from Unstop, Devpost, Devfolio and MLH; prizes in other currencies are shown in rupees at approximate rates. <a href="/explore">Browse every open hackathon</a>.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Subscribe without leaving the page; without JavaScript the form posts normally.
+    for (const form of document.querySelectorAll('[data-signup]')) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const note = form.querySelector('.signup__note'), btn = form.querySelector('button'), input = form.email;
+        if (!input.checkValidity()) { input.setAttribute('aria-invalid', 'true'); note.dataset.state = 'error'; note.textContent = 'That email does not look right.'; input.focus(); return; }
+        input.removeAttribute('aria-invalid');
+        btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = 'Sending';
+        try {
+          const r = await fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: input.value, region: form.region.value, others: form.others?.checked ? '1' : '' }) });
+          const j = await r.json().catch(() => ({}));
+          note.dataset.state = r.ok ? 'ok' : 'error';
+          note.textContent = j.message || (r.ok ? 'Check your inbox.' : 'Something went wrong. Try again in a minute.');
+          if (r.ok) form.reset();
+        } catch { note.dataset.state = 'error'; note.textContent = 'Could not reach Hackathon-bud. Check your connection and try again.'; }
+        btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = 'Send me the list';
+      });
+    }
+  </script>
+</body>
+</html>

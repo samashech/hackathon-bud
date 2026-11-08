@@ -2,8 +2,13 @@
 // tune lives in DEFAULT_PREFS so the website, extension and digest share it.
 
 export const DEFAULT_PREFS = {
-  // India, offline: north India or Bengaluru. Abroad: online only.
-  allowOtherIndia: false,
+  // Online events from anywhere; in-person events anywhere in India.
+  // region narrows in-person events to one part of India ('any' keeps all).
+  region: 'any',
+  onlineOnly: false,
+  // Ideathons (pitch an idea, no build) and promptathons (prompt-writing
+  // contests) are kept apart from hackathons; add them here to include them.
+  kinds: ['hackathon'],
   cashOnly: true,
   minScore: 0,
   interests: ['AI', 'Machine Learning', 'Generative AI', 'Linux', 'Open Source', 'Voice', 'Accessibility', 'Social Good', 'Web'],
@@ -12,34 +17,79 @@ export const DEFAULT_PREFS = {
 // Approximate rates, only used to put prizes on one scale.
 const TO_INR = { INR: 1, USD: 88, EUR: 95, GBP: 112 };
 
-const NORTH_STATES = ['delhi', 'nct', 'haryana', 'punjab', 'chandigarh', 'uttar pradesh', 'uttarakhand', 'himachal', 'jammu', 'kashmir', 'ladakh', 'rajasthan'];
-const NORTH_CITIES = ['delhi', 'new delhi', 'noida', 'greater noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'sonipat', 'sonepat', 'chandigarh', 'mohali', 'panchkula', 'jaipur', 'jodhpur', 'udaipur', 'kota', 'lucknow', 'kanpur', 'prayagraj', 'allahabad', 'varanasi', 'agra', 'mathura', 'meerut', 'dehradun', 'roorkee', 'haridwar', 'shimla', 'mandi', 'hamirpur', 'jammu', 'srinagar', 'amritsar', 'ludhiana', 'jalandhar', 'patiala', 'kurukshetra', 'rohtak', 'hisar', 'pilani', 'bareilly', 'aligarh', 'gorakhpur', 'pantnagar'];
+const REGIONS = {
+  north: {
+    states: ['delhi', 'nct', 'haryana', 'punjab', 'chandigarh', 'uttar pradesh', 'uttarakhand', 'himachal', 'jammu', 'kashmir', 'ladakh', 'rajasthan'],
+    cities: ['delhi', 'new delhi', 'noida', 'greater noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'sonipat', 'sonepat', 'panipat', 'chandigarh', 'mohali', 'panchkula', 'jaipur', 'jodhpur', 'udaipur', 'kota', 'lucknow', 'kanpur', 'prayagraj', 'allahabad', 'varanasi', 'agra', 'mathura', 'meerut', 'dehradun', 'roorkee', 'haridwar', 'shimla', 'mandi', 'hamirpur', 'jammu', 'srinagar', 'amritsar', 'ludhiana', 'jalandhar', 'patiala', 'kurukshetra', 'rohtak', 'hisar', 'pilani', 'bareilly', 'aligarh', 'gorakhpur', 'pantnagar'],
+  },
+  south: {
+    states: ['karnataka', 'kerala', 'tamil nadu', 'andhra', 'telangana', 'puducherry', 'pondicherry'],
+    cities: ['bengaluru', 'bangalore', 'mysuru', 'mysore', 'mangaluru', 'mangalore', 'manipal', 'hubli', 'chennai', 'coimbatore', 'madurai', 'vellore', 'trichy', 'tiruchirappalli', 'hyderabad', 'secunderabad', 'warangal', 'vijayawada', 'visakhapatnam', 'vizag', 'guntur', 'tirupati', 'kochi', 'cochin', 'thiruvananthapuram', 'trivandrum', 'kozhikode', 'calicut', 'thrissur', 'kollam', 'amaravati'],
+  },
+  west: {
+    states: ['maharashtra', 'gujarat', 'goa'],
+    cities: ['mumbai', 'navi mumbai', 'thane', 'pune', 'nagpur', 'nashik', 'aurangabad', 'kolhapur', 'ahmedabad', 'gandhinagar', 'surat', 'vadodara', 'rajkot', 'panaji'],
+  },
+  east: {
+    states: ['west bengal', 'odisha', 'orissa', 'bihar', 'jharkhand', 'assam', 'meghalaya', 'manipur', 'mizoram', 'nagaland', 'tripura', 'sikkim', 'arunachal'],
+    cities: ['kolkata', 'durgapur', 'kharagpur', 'siliguri', 'bhubaneswar', 'cuttack', 'rourkela', 'patna', 'ranchi', 'jamshedpur', 'dhanbad', 'guwahati', 'shillong', 'silchar', 'agartala', 'imphal', 'gangtok'],
+  },
+  central: {
+    states: ['madhya pradesh', 'chhattisgarh'],
+    cities: ['bhopal', 'indore', 'gwalior', 'jabalpur', 'ujjain', 'raipur', 'bilaspur', 'bhilai'],
+  },
+};
+export const REGION_LABEL = { north: 'North India', south: 'South India', west: 'West India', east: 'East India', central: 'Central India' };
 
 const BIG_NAMES = /\b(google|microsoft|amazon|aws|meta|apple|nvidia|intel|ibm|openai|anthropic|paypal|flipkart|walmart|adobe|salesforce|atlassian|oracle|samsung|qualcomm|cisco|github|gitlab|mongodb|vercel|cloudflare|tata|infosys|wipro|reliance|jio|zomato|swiggy|razorpay|phonepe|paytm|cred|polygon|solana|ethereum|smart india|sih|government|ministry|isro|drdo|iit\b|iiit|nit\b|bits|iisc|iim|nasa|mlh|major league hacking)/i;
 
 const norm = (s = '') => s.toLowerCase();
+const word = (w, text) => new RegExp(`\\b${w}\\b`).test(text);
 
-export function classifyPlace(h) {
-  if (h.mode === 'online') return 'online';
-  const where = norm(`${h.city} ${h.state} ${h.location} ${h.country}`);
-  const inIndia = /india/.test(where) || (!h.country && h.source === 'Unstop') || (h.country === '' && h.source === 'Devfolio');
-  if (/bengaluru|bangalore/.test(where)) return 'bangalore';
-  if (inIndia && (NORTH_STATES.some((s) => norm(h.state).includes(s)) || NORTH_CITIES.some((c) => new RegExp(`\\b${c}\\b`).test(where)))) return 'north';
-  // Hybrid elsewhere still lets you take part online.
-  if (h.mode === 'hybrid') return 'hybrid';
-  return inIndia ? 'india-other' : 'abroad';
+function regionOf(h) {
+  const state = norm(h.state);
+  const where = norm(`${h.city} ${h.state} ${h.location}`);
+  for (const [r, { states }] of Object.entries(REGIONS)) if (states.some((s) => state.includes(s))) return r;
+  for (const [r, { states, cities }] of Object.entries(REGIONS)) if (cities.some((c) => word(c, where)) || states.some((s) => word(s, where))) return r;
+  return null;
 }
 
-export const PLACE_LABEL = { online: 'Online', hybrid: 'Hybrid', north: 'North India', bangalore: 'Bengaluru', 'india-other': 'Elsewhere in India', abroad: 'Abroad, in person' };
+// Where an event happens, as { mode, region, inIndia }:
+// mode is online, hybrid or in-person; region is one of REGIONS or null.
+export function classifyPlace(h) {
+  if (h.mode === 'online') return { mode: 'online', region: null, inIndia: false };
+  const where = norm(`${h.city} ${h.state} ${h.location} ${h.country}`);
+  const region = regionOf(h);
+  const inIndia = /india/.test(where) || !!region || (!h.country && (h.source === 'Unstop' || h.source === 'Devfolio'));
+  return { mode: h.mode === 'hybrid' ? 'hybrid' : 'in-person', region, inIndia };
+}
 
 // "Hybrid, finale in Chennai" reads better than "Hybrid".
 export function placeText(h, place) {
   const city = (h.city || '').trim();
-  if (place === 'online') return 'Online';
-  if (place === 'hybrid') return city ? `Hybrid, finale in ${city}` : 'Hybrid';
-  const where = city || PLACE_LABEL[place];
-  return h.mode === 'hybrid' ? `${where}, or online` : where;
+  if (place.mode === 'online') return 'Online';
+  const where = city || (place.region ? REGION_LABEL[place.region] : h.country || 'In person');
+  return place.mode === 'hybrid' ? `${where}, or online` : where;
 }
+
+// What kind of event a listing really is. The title decides when it is clear;
+// otherwise the description does. Sites file all three under "hackathons".
+const PROMPT = /\bprompt[\s-]?(a?thon|engineering|battle|war|wars|challenge|craft|olympiad)\b|\bpromptathon\b/i;
+const IDEA = /\bidea[\s-]?a?thon\b|\bideation\b|\bidea (pitch|pitching|challenge|competition|contest|fest|storm)\b|\bpitch(ing)? (competition|contest|battle|fest)\b|\bcase (study )?(competition|challenge)\b|\bb-?plan\b|\bbusiness plan\b|\bshark tank\b/i;
+const BUILD = /\b(hack|hackathon|hacks|buildathon|build-?a-?thon|datathon|devathon|codeathon|makeathon|hackfest)\b/i;
+export function classifyKind(h) {
+  const title = h.title || '';
+  if (PROMPT.test(title)) return 'promptathon';
+  if (IDEA.test(title)) return 'ideathon';
+  if (BUILD.test(title)) return 'hackathon';
+  const text = `${h.blurb || ''} ${(h.themes || []).join(' ')}`;
+  if (PROMPT.test(text)) return 'promptathon';
+  if (/\bidea[\s-]?a?thon\b/i.test(text)) return 'ideathon';
+  return 'hackathon';
+}
+export const KIND_LABEL = { hackathon: 'Hackathon', ideathon: 'Ideathon', promptathon: 'Promptathon' };
+
+export const MODE_LABEL = { online: 'Online', hybrid: 'Hybrid', 'in-person': 'In person' };
 
 export function prizeInINR(h) {
   if (!h.prize?.amount) return 0;
@@ -106,8 +156,11 @@ export function verdict(h, s) {
 }
 
 export function passes(h, s, place, prefs = DEFAULT_PREFS) {
-  if (place === 'abroad') return false;
-  if (place === 'india-other' && !prefs.allowOtherIndia) return false;
+  if (prefs.kinds && !prefs.kinds.includes(classifyKind(h))) return false;
+  // Abroad, only events you can join online.
+  if (place.mode === 'in-person' && !place.inIndia) return false;
+  if (prefs.onlineOnly && place.mode === 'in-person') return false;
+  if (prefs.region && prefs.region !== 'any' && place.mode === 'in-person' && place.region !== prefs.region) return false;
   if (prefs.cashOnly && !s.inr) return false;
   if (s.daysLeft != null && s.daysLeft < 0) return false;
   return s.total >= (prefs.minScore || 0);

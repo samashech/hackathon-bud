@@ -1,0 +1,165 @@
+/* Hallmark · shape: Index-First · genre: modern-minimal · theme: Console (deal: manual, scripts not run) · job: subscribe
+ * hero: counter, the email field set large beside the email as it would go out now · nav: edge-aligned, the Hackathon-bud wordmark and two links · footer: colophon · imagery: the product, the live list · signature: the live list of open hackathons, each with its score in the measured face and its five facts · console: graphite
+ * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R5 V4 · weakest: P, a newsletter page is a known shape; the argument is the rules section, which says plainly whose taste this is and how it scores */
+/* waive 64: scores, prize pools, registrations and days are measured figures and use the mono face; every label and head stays in Host Grotesk */
+
+@import url("tokens.css");
+@import url("base.css");
+
+:root {
+  --text-display: clamp(2.75rem, 4.6vw + 1rem, 5rem);
+  --text-section: clamp(2rem, 2.2vw + 1rem, 3.25rem);
+  --text-title: clamp(1.2rem, 0.6vw + 0.9rem, 1.5rem);
+  --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.3rem);
+  --gutter: 64px;
+  --section-gap: 128px;
+}
+@media (max-width: 60rem) { :root { --gutter: 24px; --section-gap: 88px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; --section-gap: 64px; } }
+
+.lead { font-size: var(--text-lead); line-height: 1.45; color: var(--color-ink-2); max-width: 46ch; }
+.measured { font-family: var(--font-outlier); font-variant-numeric: tabular-nums slashed-zero; }
+
+/* ---------- nav ---------- */
+.nav { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.nav__inner { display: flex; align-items: center; gap: var(--space-lg); min-height: 64px; }
+.nav .mark { margin-right: auto; font-size: 1.25rem; }
+.nav a:not(.mark) { color: var(--color-muted); text-decoration: none; font-size: var(--text-sm); font-weight: 500; transition: color var(--dur-micro) var(--ease-out); }
+.nav a:not(.mark):hover { color: var(--color-ink); }
+
+/* ---------- controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 var(--space-lg);
+  border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill);
+  background: var(--color-paper-2); color: var(--color-ink); font-weight: 500; font-size: var(--text-md); text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.btn:hover { background: var(--color-paper-3); border-color: var(--color-muted); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn[aria-busy="true"] { cursor: progress; }
+.btn--primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+.btn--primary:hover { background: color-mix(in oklab, var(--color-accent) 88%, var(--color-ink)); border-color: transparent; }
+.btn--small { min-height: 40px; padding: 0 var(--space-md); font-size: var(--text-sm); }
+
+.textlink { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; transition: color var(--dur-micro) var(--ease-out); }
+.textlink:hover { color: var(--color-accent); }
+
+/* ---------- the subscribe form ---------- */
+.signup { display: grid; gap: var(--space-sm); max-width: 34rem; }
+.signup__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs); }
+.signup label { display: grid; gap: var(--space-2xs); font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); }
+.signup input, .signup select {
+  min-height: 52px; width: 100%; padding: 0 var(--space-md);
+  background: var(--color-paper-3); color: var(--color-ink); font-size: var(--text-md);
+  border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill);
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.signup input:hover, .signup select:hover { border-color: var(--color-muted); }
+.signup input:focus-visible, .signup select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.signup input[aria-invalid="true"] { border-color: var(--color-bad); }
+.signup input::placeholder { color: var(--color-muted); }
+.signup .signup__check { display: flex; align-items: center; gap: var(--space-xs); color: var(--color-ink-2); font-weight: 400; min-height: 44px; cursor: pointer; }
+.signup__check input { width: 18px; height: 18px; min-height: 0; accent-color: var(--color-accent); margin: 0; }
+.signup__note { font-size: var(--text-sm); color: var(--color-muted); min-height: 1lh; }
+.signup__note[data-state="ok"] { color: var(--color-ok); }
+.signup__note[data-state="error"] { color: var(--color-bad); }
+
+/* ---------- hero ---------- */
+.hero { padding-block: var(--space-3xl) var(--space-2xl); }
+.hero__grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--space-3xl); align-items: center; min-height: min(calc(100svh - 64px - var(--space-3xl) - var(--space-2xl)), 640px); }
+.hero h1 { font-size: var(--text-display); max-width: 11ch; }
+.hero .lead { margin-top: var(--space-lg); }
+.hero .signup { margin-top: var(--space-xl); }
+
+/* the email as it would go out now */
+.issue { border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); overflow: hidden; }
+.issue__head { padding: var(--space-md) var(--space-lg); border-bottom: var(--rule-hair) solid var(--color-rule); display: grid; gap: var(--space-3xs); }
+.issue__from { font-weight: 500; }
+.issue__subject { color: var(--color-muted); font-size: var(--text-sm); }
+.issue ol { list-style: none; margin: 0; padding: 0; }
+.issue li { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: var(--space-2xs) var(--space-sm); padding: var(--space-md) var(--space-lg); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.issue li:last-child { border-bottom: 0; }
+.issue .score { grid-row: 1 / span 3; font-family: var(--font-outlier); font-size: var(--text-2xl); line-height: 1; color: var(--color-cool); font-variant-numeric: tabular-nums slashed-zero; }
+.issue .t { font-weight: 500; line-height: 1.3; }
+.issue .b { color: var(--color-muted); font-size: var(--text-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.issue .f { font-size: var(--text-sm); color: var(--color-ink-2); }
+.issue .f .measured { color: var(--color-ink); }
+
+/* ---------- sections ---------- */
+.section { padding-block: var(--section-gap); }
+.section--band { background: var(--color-paper-3); border-block: var(--rule-hair) solid var(--color-rule); }
+.headblock { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-lg) var(--gap-columns); align-items: end; margin-bottom: var(--space-2xl); }
+.headblock h2 { font-size: var(--text-section); }
+.headblock p { color: var(--color-muted); max-width: 44ch; }
+
+/* ---------- the live list (signature) ---------- */
+.hk-list { list-style: none; margin: 0; padding: 0; border-top: var(--rule-hair) solid var(--color-rule); }
+.hk { display: grid; grid-template-columns: 6rem minmax(0, 1fr) auto; gap: var(--space-md) var(--gap-columns); padding: var(--space-xl) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.hk__score { font-family: var(--font-outlier); font-size: var(--text-3xl); line-height: 1; color: var(--color-cool); font-variant-numeric: tabular-nums slashed-zero; letter-spacing: -0.03em; }
+.hk__tier { display: block; margin-top: var(--space-xs); font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); letter-spacing: 0; }
+.hk h3 { font-size: var(--text-title); max-width: 36ch; }
+.hk__org { color: var(--color-muted); font-size: var(--text-sm); margin-top: var(--space-2xs); }
+.hk__blurb { color: var(--color-ink-2); margin-top: var(--space-sm); max-width: 72ch; }
+.hk__facts { display: grid; grid-template-columns: repeat(5, minmax(0, auto)); justify-content: start; gap: var(--space-xs) var(--space-xl); margin: var(--space-lg) 0 0; }
+.hk__facts dt { font-size: var(--text-sm); color: var(--color-muted); font-weight: 500; }
+.hk__facts dd { margin: var(--space-3xs) 0 0; font-family: var(--font-outlier); font-size: var(--text-md); color: var(--color-ink); font-variant-numeric: tabular-nums slashed-zero; }
+.hk__facts dd.word { font-family: var(--font-body); }
+.hk__facts .soon { color: var(--color-accent); }
+.hk__go { align-self: start; }
+.hk--lead .hk__score { font-size: calc(var(--text-3xl) * 1.5); }
+.hk--lead h3 { font-size: calc(var(--text-title) * 1.25); }
+.more { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-md); margin-top: var(--space-xl); color: var(--color-muted); }
+
+/* ---------- how it picks: rows ---------- */
+.how { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--space-xl) var(--gap-columns); }
+.how__head h2 { font-size: var(--text-section); }
+.how__head p { margin-top: var(--space-md); color: var(--color-muted); max-width: 32ch; }
+.rules { margin: 0; border-top: var(--rule-hair) solid var(--color-rule); }
+.rule { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 5fr); gap: var(--space-sm) var(--gap-columns); padding: var(--space-lg) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.rule dt { font-size: var(--text-title); font-weight: 500; letter-spacing: var(--tracking-display); line-height: 1.25; }
+.rule dd { margin: 0; color: var(--color-ink-2); }
+.weights { list-style: none; margin: var(--space-md) 0 0; padding: 0; display: grid; gap: var(--space-sm); }
+.weights li { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 2.5rem; gap: var(--space-sm); align-items: center; font-size: var(--text-sm); }
+.weights .bar { display: block; height: 6px; border-radius: 3px; background: var(--color-paper-2); box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule); overflow: hidden; }
+.weights .bar i { display: block; height: 100%; width: 100%; background: var(--color-cool); transform-origin: left; transform: scaleX(var(--v)); }
+.weights .pts { font-family: var(--font-outlier); color: var(--color-cool); text-align: right; }
+.tiers { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); margin-top: var(--space-sm); }
+.tiers span { white-space: nowrap; }
+.tiers .measured { color: var(--color-cool); }
+
+/* ---------- the email: split ---------- */
+.mail { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: var(--space-2xl) var(--space-3xl); align-items: start; }
+.mail h2 { font-size: var(--text-section); }
+.mail__facts { margin: var(--space-xl) 0 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-md) var(--space-xl); }
+.mail__facts dt { font-weight: 500; }
+.mail__facts dd { margin: 0; color: var(--color-ink-2); max-width: 46ch; }
+.mail .signup { max-width: none; padding: var(--space-xl); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); }
+.mail .signup h3 { font-size: var(--text-title); }
+
+/* ---------- footer ---------- */
+.footer { padding-block: var(--space-2xl) var(--space-3xl); color: var(--color-muted); font-size: var(--text-sm); }
+.footer p { max-width: 70ch; }
+.footer a { color: var(--color-ink-2); text-underline-offset: 0.2em; }
+.footer a:hover { color: var(--color-accent); }
+
+/* ---------- small screens ---------- */
+@media (max-width: 64rem) {
+  .hero__grid, .mail, .how { grid-template-columns: minmax(0, 1fr); }
+  .hero__grid { min-height: 0; max-height: none; gap: var(--space-2xl); }
+  .headblock { grid-template-columns: minmax(0, 1fr); }
+  .hk__facts { grid-template-columns: repeat(3, minmax(0, auto)); }
+}
+@media (max-width: 40rem) {
+  .nav a.hide-sm { display: none; }
+  .hero { padding-block: var(--space-xl) var(--space-xl); }
+  .signup__row { grid-template-columns: minmax(0, 1fr); }
+  .hk { grid-template-columns: 3.5rem minmax(0, 1fr); padding: var(--space-lg) 0; }
+  .hk__score, .hk--lead .hk__score { font-size: var(--text-2xl); }
+  .hk__go { grid-column: 2; }
+  .hk__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-sm) var(--space-md); }
+  .rule { grid-template-columns: minmax(0, 1fr); }
+  .weights li { grid-template-columns: 7rem minmax(0, 1fr) 2rem; }
+  .mail .signup { padding: var(--space-lg); }
+}

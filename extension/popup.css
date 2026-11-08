@@ -1,5 +1,5 @@
 /* Hallmark · shape: app screen · genre: modern-minimal · theme: Console (deal: manual) · console: graphite
- * nav: a header with one action · signature: the score column in the measured face · states: loading, empty, error, full
+ * nav: a header with the Hackathon-bud wordmark and one action · signature: the score column in the measured face · states: loading, empty, error, full
  * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · v2.0.0 */
 @import url("tokens.css");
 *, *::before, *::after { box-sizing: border-box; }
@@ -11,13 +11,16 @@ h1 { margin: 0; font-size: var(--text-md); font-weight: 500; letter-spacing: var
 .btn { min-height: 32px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink); font: 500 var(--text-sm) var(--font-body); cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
 .btn:hover { background: var(--color-paper-3); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.where { display: flex; gap: var(--space-2xs); padding: var(--space-xs) var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
-.where label { position: relative; }
-.where input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-.where span { display: inline-flex; min-height: 28px; align-items: center; padding: 0 var(--space-xs); border-radius: var(--radius-chip); color: var(--color-muted); font-weight: 500; transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out); }
-.where input:hover + span { color: var(--color-ink); }
-.where input:checked + span { color: var(--color-ink); background: var(--color-paper-2); box-shadow: inset 0 -2px 0 var(--color-accent); }
-.where input:focus-visible + span { outline: 2px solid var(--color-focus); }
+.where { display: block; padding: var(--space-xs) var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); }
+#w { width: 100%; min-height: 32px; padding: 0 var(--space-xs); background: var(--color-paper-3); color: var(--color-ink); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill); font: 400 var(--text-sm) var(--font-body); }
+#w:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.head { display: grid; gap: var(--space-3xs); }
+.head p { margin: 0; color: var(--color-muted); font-size: var(--text-xs); }
+.mark { display: inline-flex; align-items: center; font-family: var(--font-mark); font-weight: 800; font-stretch: 125%; font-size: 0.95rem; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+.mark .o { position: relative; }
+.mark .o::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0.16em; height: 0.92em; background: currentColor; border-radius: 1px; transform: translate(-50%, -50%) rotate(32deg); box-shadow: 0 0 0 0.05em var(--color-paper); }
+.mark .dash { color: var(--color-accent); margin-inline: 0.04em; }
 .list { list-style: none; margin: 0; padding: 0; max-height: 430px; overflow-y: auto; }
 .list li { border-bottom: var(--rule-hair) solid var(--color-rule); }
 .list a { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0 var(--space-sm); padding: var(--space-sm) var(--space-md); color: inherit; text-decoration: none; transition: background-color var(--dur-micro) var(--ease-out); }

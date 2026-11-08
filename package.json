@@ -1,20 +1,22 @@
 {
-  "name": "hackathon-radar",
+  "name": "hackathon-bud",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Finds hackathons worth a weekend on Unstop, Devpost, Devfolio and MLH, and ranks them.",
+  "description": "Hackathon-bud: hackathons worth your weekend from Unstop, Devpost, Devfolio and MLH, on a website, a browser extension and a daily email.",
   "scripts": {
     "sync": "node scripts/sync-core.mjs",
-    "refresh": "node scripts/refresh.mjs",
-    "start": "npm run sync && node scripts/refresh.mjs && node server.mjs",
-    "serve": "npm run sync && node server.mjs",
-    "digest": "node scripts/digest.mjs",
-    "digest:preview": "node scripts/digest.mjs --preview",
-    "extension:zip": "npm run sync && cd extension && zip -qr ../radar-extension.zip . -x '*.DS_Store'"
+    "start": "npm run sync && node --env-file-if-exists=.env server.mjs",
+    "refresh": "node --env-file-if-exists=.env scripts/refresh.mjs",
+    "digest": "node --env-file-if-exists=.env scripts/digest.mjs",
+    "digest:preview": "node --env-file-if-exists=.env scripts/digest.mjs --preview --no-refresh",
+    "extension:zip": "npm run sync && cd extension && zip -qr ../hackathon-bud-extension.zip . -x '*.DS_Store'"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^6.9.16",
+    "pg": "^8.23.1"
   }
 }

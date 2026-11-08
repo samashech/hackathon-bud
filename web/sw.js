@@ -1,7 +1,7 @@
 // Offline shell: the app files come from cache, the hackathon list from the
 // network first so it is fresh, falling back to the last copy when offline.
-const SHELL = 'radar-shell-v1';
-const FILES = ['./', 'index.html', 'app.css', 'tokens.css', 'base.css', 'app.js', 'core/index.mjs', 'core/score.mjs', 'core/sources.mjs', 'icon.svg', 'manifest.webmanifest'];
+const SHELL = 'hackathon-bud-v2';
+const FILES = ['/', '/explore', 'landing.css', 'app.css', 'tokens.css', 'base.css', 'app.js', 'core/index.mjs', 'core/score.mjs', 'core/sources.mjs', 'icon.svg', 'manifest.webmanifest'];
 
 self.addEventListener('install', (e) => e.waitUntil(caches.open(SHELL).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== SHELL).map((k) => caches.delete(k)))).then(() => self.clients.claim())));

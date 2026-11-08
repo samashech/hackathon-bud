@@ -1,81 +1,98 @@
-# Hackathon radar
+# Hackathon-bud
 
-Finds hackathons on **Unstop, Devpost, Devfolio and MLH**, keeps the ones that fit your rules, and scores each one out of 100 so you can tell at a glance whether it's worth a weekend.
+Finds open hackathons on **Unstop, Devpost, Devfolio and MLH**, scores each out of 100 on how worth it it is, and lets anyone get a daily email with just their address, no account.
 
-**Location rules**
-- In India, in person: **north India** (Delhi NCR, Haryana, Punjab, Chandigarh, UP, Uttarakhand, HP, J&K, Rajasthan) or **Bengaluru**. Turn on "Rest of India too" to see the others.
-- Outside India: **online or hybrid only**.
-- "Cash prize only" is on by default.
+- **`/`** is the landing page: signup form, today's eight strongest, and how it picks.
+- **`/explore`** is every open hackathon, filterable by region, type, cash prize and search.
+- **The email** goes out at 8:00 IST, only when something new and strong opens or a strong one is about to close.
+- **The browser extension** shows a badge when a strong new hackathon appears.
 
-**Worthiness score**
+## How it picks
 
-| Part | Weight | What it measures |
-|---|---|---|
-| Crowd | 34 | Registrations on a log scale (20 people scores 0, 20,000 scores full) |
-| Cash | 34 | Prize pool converted to ₹, on a log scale (₹5,000 scores 0, ₹50 lakh scores full) |
-| Who runs it | 20 | Big companies, IIT/NIT/IIIT/BITS, MLH, plus featured or verified flags and view counts |
-| Time left | 7 | Lower when registration closes within two days |
-| Your interests | 5 | Your interests named in the title or themes (editable in Settings) |
+These are Sameer's rules; friends get the same list filtered by where they can go.
 
-Tiers: 70 and above is **Marquee**, 52 to 69 **Strong**, 35 to 51 **Decent**, below 35 **Thin**. Every hackathon's reading also explains its score in one sentence, e.g. *"2,164 people have registered and ₹6 lakh in cash is on the table."*
+- **Kept:** registration still open and a cash prize named on the listing. In-person events only inside India; outside India, only events you can join online.
+- **Kept apart:** ideathons (pitch an idea, no build) and promptathons (prompt contests). The sites file them under hackathons; here they get their own filter on `/explore` and are left out of the email unless a subscriber ticks the box. Detection is by keywords in the title, then the description (`classifyKind` in `core/score.mjs`).
+- **Score out of 100:** registrations 34 and prize pool 34 (both on a log scale), who runs it 20 (big companies, IIT/NIT/IIIT/BITS, MLH, featured or verified flags), time to register 7, interests 5.
+- **Tiers:** Marquee 70+, Strong 52+, Decent 35+, Thin below. The email carries Strong and Marquee only.
+- **Regions:** North, South, West, East and Central India, from the state or city (`REGIONS` in `core/score.mjs`).
 
-You can tune the weights and the city lists in `core/score.mjs`.
+## Run it locally
 
-## The four ways to use it
-
-All four share the same code in `core/`.
-
-### 1. Website
 ```sh
 npm install
-npm start                # fetches fresh data, then serves http://localhost:4321
-HOST=0.0.0.0 npm start   # also reachable from your phone on the same Wi-Fi
+cp .env.example .env     # add GMAIL_USER and GMAIL_APP_PASSWORD
+npm start                # http://localhost:4321
 ```
-Your shortlist, hidden events, interests and theme are saved in your browser. Filters are stored in the URL, so you can bookmark a view.
 
-### 2. Mobile app
-The website is an installable app (PWA). Open it on your phone in Chrome, then choose **⋮ → Add to Home screen / Install app**. It opens full screen and keeps working offline with the last list it loaded. Your phone needs to reach a URL, so either use GitHub Pages (see 4) or run `HOST=0.0.0.0 npm start` on the same Wi-Fi.
+Without `DATABASE_URL`, subscribers and the latest list are kept in `.data/store.json`.
 
-### 3. Browser extension (Chrome, Brave, Edge)
-```sh
-npm run sync                     # copies core/ into extension/
-```
-Then open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the `extension/` folder.
-- It checks all four sites every 6 hours.
-- The badge shows how many strong hackathons are new.
-- You get one notification per check when something new scores 52 or higher.
-- The popup lists the top 15 for each location filter.
+To keep it running on this Linux machine after reboots, run `deploy/install-linux.sh` (settings in `~/.config/hackathon-bud/gmail.env`). `deploy/uninstall-linux.sh` removes it. The installer also replaces the older `hackathon-radar` units if they are installed.
 
-### 4. Gmail digest
-1. Turn on 2-step verification for your Google account. Then create an **app password** at <https://myaccount.google.com/apppasswords>.
-2. Run it locally:
-   ```sh
-   npm run digest:preview   # writes digest-preview.html to look at
-   GMAIL_USER=you@gmail.com GMAIL_APP_PASSWORD='abcd efgh ijkl mnop' npm run digest
-   ```
-   The email includes strong hackathons found in the last 26 hours and strong ones that close within 3 days. If there are none, nothing is sent. Options: `--since <hours>`, `--min <score>`, `--no-refresh`.
+Handy commands:
 
-## Run it on this machine, always on
-```sh
-deploy/install-linux.sh     # website always at localhost:4321, refresh and digest daily at 8:00
-deploy/uninstall-linux.sh   # removes both
-```
-Put your Gmail app password in `~/.config/hackathon-radar/gmail.env`. Until it's there, the daily run still refreshes the list but skips the email. `Persistent=true` means a run missed while the laptop was off happens at the next boot. Logs: `journalctl --user -u hackathon-radar-daily`.
+| Command | What it does |
+|---|---|
+| `npm run refresh` | Fetch every source now |
+| `npm run digest` | Send today's digest to every confirmed subscriber now |
+| `npm run digest -- --dry-run` | Show who would get what, send nothing |
+| `npm run digest:preview` | Write `digest-preview.html` to look at |
+| `MAIL_DRY_RUN=1 npm start` | Print emails to the console instead of sending |
 
-## Run it daily for free (GitHub Actions + Pages)
-`.github/workflows/radar.yml` runs every day at 8:00 IST. It refreshes the list, publishes the website to GitHub Pages and sends the digest.
+## Deploy on Render
+
+`render.yaml` sets up a **Starter** web service ($7/month, never sleeps) with a **1 GB disk** for subscribers and the list (about $0.25/month). That is roughly $7.25 a month, so $50 of credit covers about six months. The 8:00 digest and six-hourly refresh run by themselves.
 
 1. Put this folder in its own GitHub repo and push it.
-2. Go to **Settings → Pages → Source** and choose **GitHub Actions**.
-3. Under **Settings → Secrets and variables → Actions**, add `GMAIL_USER` and `GMAIL_APP_PASSWORD`. `DIGEST_TO` is optional and sets a different recipient.
-4. Go to **Actions → Radar → Run workflow** once to start it.
+2. In Render: **New → Blueprint**, pick the repo.
+3. Fill in the mail settings (see below). `CRON_SECRET` is generated for you.
+4. Open the `.onrender.com` address once it's live. The first visit fetches the list, which takes about 30 seconds.
 
-The site goes live at `https://<you>.github.io/<repo>/`. Install that URL on your phone, and set it in the extension popup's "Open the full radar" link (`fullUrl` in extension storage).
+To spend less, change `plan: starter` to `plan: free` and remove the `disk:` block. A free service sleeps after 15 minutes idle, so it then needs a daily ping of `/api/cron?key=<CRON_SECRET>` from [cron-job.org](https://cron-job.org) to send the digest, and a `DATABASE_URL` (free [Neon](https://neon.tech) Postgres) so subscribers survive deploys.
+
+## Who the email comes from
+
+| Setup | Friends see | Effort |
+|---|---|---|
+| `GMAIL_USER` + `GMAIL_APP_PASSWORD` | that Gmail address | none, but it is your address |
+| A new Gmail just for this, e.g. `hackathonbud.alerts@gmail.com`, same two settings | the new address | 5 minutes, free |
+| Your own domain with [Brevo](https://www.brevo.com) or [Resend](https://resend.com): set `SMTP_URL` and `MAIL_FROM` | `hello@yourdomain` | a domain (from about ₹100 a year) plus DNS records |
+
+Examples:
+```
+SMTP_URL=smtps://resend:re_xxxxxxxx@smtp.resend.com:465
+MAIL_FROM=Hackathon-bud <hello@hackathonbud.in>
+```
+```
+SMTP_URL=smtps://you%40mail.com:xsmtpsib-xxxxxxxx@smtp-relay.brevo.com:465
+MAIL_FROM=Hackathon-bud <hello@hackathonbud.in>
+```
+`SMTP_URL` wins over the Gmail settings when both are set. `MAIL_REPLY_TO` is optional. A personal Gmail sends about 500 emails a day; Brevo's free plan 300 a day; Resend's free plan 100 a day.
+
+## Browser extension (Chrome, Brave, Edge)
+
+```sh
+npm run sync
+```
+
+Then `chrome://extensions` (or `brave://extensions`) → **Developer mode** → **Load unpacked** → pick `extension/`.
+
+It checks the four sites itself every six hours, shows a badge for strong new hackathons and sends one notification per check. After deploying, set your site's address in `extension/config.js` so "See every hackathon" opens it.
+
+## Files
+
+- `core/`: fetching (`sources.mjs`), location, type and score rules (`score.mjs`), and ranking (`index.mjs`). Shared by everything; `npm run sync` copies it into `web/` and `extension/`.
+- `server.mjs`: the website, signup, confirm and unsubscribe pages, and the schedule.
+- `server/`: storage (`store.mjs`), emails (`email.mjs`), refresh and digest jobs (`jobs.mjs`), server-rendered HTML (`pages.mjs`).
+- `web/`: `landing.html`, `explore.html` with `app.js`, and the stylesheets.
+- `extension/`: the browser extension.
 
 ## What it doesn't do
-- **Instagram**: Instagram's terms ban scraping and it blocks bots, so this tool doesn't read it. Nearly every hackathon promoted there is also listed on Unstop or Devfolio, which this tool covers.
-- **MLH** doesn't publish registration counts or prizes. Its events get a fixed "vetted" score for crowd, and the cash-only filter hides them. Turn the filter off to see them.
-- Prize totals come from what each site lists. For Devfolio, they are parsed from free text and may be approximate.
+
+- **Instagram**: Instagram's terms ban scraping and it blocks bots. Almost everything promoted there is also on Unstop or Devfolio.
+- **MLH** doesn't publish registration counts or prizes, so the cash-only filter hides its events. Untick "Cash prize only" on `/explore` to see them.
+- Devfolio prize totals are read from free text and may be approximate. Prizes in other currencies are converted to rupees at fixed approximate rates.
 
 ## Design
-The UI follows the [Hallmark](https://github.com/nutlope/hallmark) design skill and uses its **Console** theme: a graphite background, Host Grotesk for text, Atkinson Hyperlegible Mono for measured numbers, and amber for your own actions. `design-skills/` holds clones of `nutlope/hallmark` and `elayadesign/ai-design-skills`. Both are also installed as project skills in `.claude/skills/`.
+
+The UI follows the [Hallmark](https://github.com/nutlope/hallmark) design skill with its **Console** theme: a graphite background, Host Grotesk for text, Atkinson Hyperlegible Mono for measured numbers, and amber for actions. The wordmark is Archivo Expanded 800, with a slashed O and an amber hyphen. `design-skills/` holds clones of `nutlope/hallmark` and `elayadesign/ai-design-skills`, which are also installed in `.claude/skills/`.

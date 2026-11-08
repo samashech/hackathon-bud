@@ -18,7 +18,7 @@ async function check() {
   // The first run would flag everything, so it stays quiet.
   if (fresh.length && seen.length) {
     const top = fresh[0];
-    chrome.notifications.create('radar', {
+    chrome.notifications.create('hackathon-bud', {
       type: 'basic', iconUrl: 'icon-128.png',
       title: fresh.length === 1 ? `New: ${top.title}` : `${fresh.length} new hackathons worth a look`,
       message: top.verdict,

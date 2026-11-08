@@ -3,7 +3,8 @@ web/core/
 web/data/
 extension/core/
 digest-preview.html
-radar-extension.zip
+hackathon-bud-extension.zip
+.data/
 .env
 # cloned reference repos, each its own git checkout
 design-skills/

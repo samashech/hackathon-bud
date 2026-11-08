@@ -1,4 +1,5 @@
 import { formatINR } from './core/score.mjs';
+import { SITE } from './config.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -8,10 +9,10 @@ let state = {};
 
 function render() {
   const { ranked = [], unread = [], fetchedAt, errors = {} } = state;
-  const where = $('#where').w.value;
-  const list = ranked.filter((h) => where === 'all' || (where === 'online' ? h.place === 'online' || h.place === 'hybrid' : h.place === where)).slice(0, 15);
+  const where = $('#w').value;
+  const list = ranked.filter((h) => (where === 'any' ? true : where === 'online' ? h.place.mode !== 'in-person' : h.place.mode !== 'in-person' || h.place.region === where)).slice(0, 15);
   const strong = ranked.filter((h) => h.score.total >= 52).length;
-  $('#headline').textContent = fetchedAt ? `${strong} worth your weekend` : 'Radar';
+  $('#headline').textContent = fetchedAt ? `${strong} worth your weekend` : '';
   if (!fetchedAt) { $('#list').innerHTML = '<li class="empty">Checking Unstop, Devpost, Devfolio and MLH. This takes about twenty seconds the first time.</li>'; }
   else if (!list.length) { $('#list').innerHTML = '<li class="empty">Nothing here fits right now. Try All, or check back after the next refresh.</li>'; }
   else {
@@ -27,15 +28,16 @@ function render() {
 }
 
 async function load() {
-  state = await chrome.storage.local.get(['ranked', 'unread', 'fetchedAt', 'errors', 'fullUrl']);
-  if (state.fullUrl) $('#full').href = state.fullUrl;
+  state = await chrome.storage.local.get(['ranked', 'unread', 'fetchedAt', 'errors']);
+  $('#full').href = `${SITE.replace(/\/?$/, '/')}explore`;
   render();
   // Opening the popup counts as reading the new ones.
   chrome.action.setBadgeText({ text: '' });
   chrome.storage.local.set({ unreadShown: state.unread || [] });
 }
 
-$('#where').addEventListener('change', render);
+$('#w').value = localStorage.getItem('bud.where') || 'any';
+$('#w').addEventListener('change', () => { localStorage.setItem('bud.where', $('#w').value); render(); });
 $('#refresh').addEventListener('click', async (e) => {
   const b = e.currentTarget;
   b.disabled = true; b.textContent = 'Checking';

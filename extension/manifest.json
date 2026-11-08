@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Hackathon radar",
+  "name": "Hackathon-bud",
   "version": "1.0.0",
   "description": "Hackathons worth a weekend from Unstop, Devpost, Devfolio and MLH, ranked, with a badge when a strong new one appears.",
-  "action": { "default_popup": "popup.html", "default_title": "Hackathon radar" },
+  "action": { "default_popup": "popup.html", "default_title": "Hackathon-bud" },
   "background": { "service_worker": "background.js", "type": "module" },
   "permissions": ["storage", "alarms", "notifications"],
   "host_permissions": ["https://unstop.com/*", "https://devpost.com/*", "https://api.devfolio.co/*", "https://mlh.io/*"],

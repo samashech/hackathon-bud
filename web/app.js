@@ -6,10 +6,10 @@ const safeUrl = (u) => (/^https?:\/\//.test(u || '') ? u : '#');
 
 // ---------- per-device memory ----------
 const store = {
-  get(k, d) { try { const v = localStorage.getItem(`radar.${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(`radar.${k}`, JSON.stringify(v)); } catch {} },
+  get(k, d) { try { const v = localStorage.getItem(`bud.${k}`); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(`bud.${k}`, JSON.stringify(v)); } catch {} },
 };
-let prefs = { ...DEFAULT_PREFS, name: 'Sameer', ...store.get('prefs', {}) };
+let prefs = { ...DEFAULT_PREFS, ...store.get('prefs', {}) };
 const shortlist = new Set(store.get('shortlist', []));
 const hidden = new Set(store.get('hidden', []));
 const lastVisit = store.get('lastVisit', null);
@@ -28,9 +28,9 @@ function readState() {
   const p = params();
   return {
     view: p.get('view') || 'ranked',
-    where: p.get('where') || 'all',
+    where: p.get('where') || 'any',
+    kind: p.get('kind') || 'hackathon',
     cash: p.get('cash') !== '0',
-    rest: p.get('rest') === '1',
     sort: p.get('sort') || 'score',
     q: p.get('q') || '',
     id: p.get('id') || '',
@@ -38,13 +38,13 @@ function readState() {
 }
 
 // ---------- formatting ----------
-const fmtCount = (n) => (n == null ? '<span class="dim">not shown</span>' : `<span class="measured">${n.toLocaleString('en-IN')}</span>`);
-const fmtPrize = (h) => (h.score.inr ? `<span class="measured">${esc(formatINR(h.score.inr))}</span>` : '<span class="dim">none listed</span>');
+const fmtCount = (n) => (n == null ? '<span class="dim">Not shown</span>' : n.toLocaleString('en-IN'));
+const fmtPrize = (h) => (h.score.inr ? esc(formatINR(h.score.inr)) : '<span class="dim">Not listed</span>');
 function fmtDays(d) {
-  if (d == null) return '<span class="dim">unknown</span>';
-  if (d <= 0) return '<span class="measured soon">today</span>';
-  if (d === 1) return '<span class="measured soon">1 day</span>';
-  return `<span class="measured${d <= 3 ? ' soon' : ''}">${d} days</span>`;
+  if (d == null) return '<span class="dim">Not listed</span>';
+  if (d <= 0) return '<span class="soon">Today</span>';
+  if (d === 1) return '<span class="soon">1 day</span>';
+  return `<span${d <= 3 ? ' class="soon"' : ''}>${d} days</span>`;
 }
 function ago(iso) {
   const m = Math.round((Date.now() - new Date(iso)) / 60000);
@@ -73,7 +73,7 @@ async function load() {
 
 function rerank() {
   const s = readState();
-  ranked = rank(data.items, { ...prefs, allowOtherIndia: s.rest, cashOnly: s.cash });
+  ranked = rank(data.items, { ...prefs, cashOnly: s.cash, onlineOnly: s.where === 'online', region: s.where === 'online' ? 'any' : s.where, kinds: s.kind === 'all' ? ['hackathon', 'ideathon', 'promptathon'] : [s.kind] });
   render();
 }
 
@@ -85,9 +85,6 @@ function visible() {
     if (s.view === 'hidden') return hidden.has(h.id);
     return h.ok && !hidden.has(h.id);
   });
-  if (s.view === 'ranked' && s.where !== 'all') {
-    list = list.filter((h) => (s.where === 'online' ? h.place === 'online' || h.place === 'hybrid' : h.place === s.where));
-  }
   if (q) list = list.filter((h) => `${h.title} ${h.organiser} ${h.location} ${h.source}`.toLowerCase().includes(q));
   const by = {
     score: (a, b) => b.score.total - a.score.total,
@@ -107,10 +104,11 @@ function render() {
   const strong = ranked.filter((h) => h.ok && !hidden.has(h.id) && h.score.total >= 52).length;
   const fresh = ranked.filter((h) => h.ok && !hidden.has(h.id) && isNew(h)).length;
 
-  $('#headline').textContent = s.view === 'shortlist' ? `Your shortlist, ${shortlist.size} saved` : s.view === 'hidden' ? `${hidden.size} hidden` : `${strong} hackathons worth your weekend`;
+  const noun = { hackathon: 'hackathons', ideathon: 'ideathons', promptathon: 'promptathons', all: 'events' }[s.kind] || 'hackathons';
+  $('#headline').textContent = s.view === 'shortlist' ? `Your shortlist, ${shortlist.size} saved` : s.view === 'hidden' ? `${hidden.size} hidden` : `${strong} ${noun} worth your weekend`;
   $('#subline').textContent = s.view === 'ranked'
     ? `${okCount} match your rules, ${strong} score strong or better.${fresh ? ` ${fresh} are new since you last looked.` : ''}`
-    : s.view === 'shortlist' ? 'Saved on this device. The email digest and the extension read the same rules.' : 'Bring one back from its reading.';
+    : s.view === 'shortlist' ? 'Saved on this device only.' : 'Bring one back from its reading.';
   for (const a of document.querySelectorAll('.tabs a')) { if (a.dataset.view === s.view) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
   $('[data-count="ranked"]').textContent = okCount;
   $('[data-count="shortlist"]').textContent = shortlist.size || '';
@@ -128,23 +126,24 @@ function render() {
       ? '<div class="notice"><h2>Nothing saved yet</h2><p>Open a hackathon and press Shortlist to keep it here.</p><a class="btn" href="?view=ranked">See the ranked list</a></div>'
       : s.view === 'hidden'
       ? '<div class="notice"><h2>Nothing hidden</h2><p>Hackathons you hide from the ranked list wait here.</p></div>'
-      : `<div class="notice"><h2>No hackathon fits these filters</h2><p>${s.q ? `Nothing matches “${esc(s.q)}”.` : 'Try everywhere, or allow events without a listed cash prize.'}</p><button class="btn" type="button" data-reset>Clear filters</button></div>`;
+      : `<div class="notice"><h2>No hackathon fits these filters</h2><p>${s.q ? `Nothing matches “${esc(s.q)}”.` : 'Try anywhere in India, or allow events without a listed cash prize.'}</p><button class="btn" type="button" data-reset>Clear filters</button></div>`;
     $('[data-reset]')?.addEventListener('click', () => { history.replaceState(null, '', `?view=${s.view}`); syncForm(); rerank(); });
   } else {
     notice.innerHTML = '';
     rows.innerHTML = list.map((h) => `
-      <tr data-id="${esc(h.id)}" aria-selected="${h.id === s.id}">
-        <td class="num cell-score"><span class="score">${h.score.total}</span><span class="tierword">${h.tier.label}</span></td>
-        <td>
-          <a class="title" href="?id=${encodeURIComponent(h.id)}" data-open="${esc(h.id)}">${esc(h.title)}</a>
-          <span class="org">${esc(h.organiser || h.source)}</span>
-          ${isNew(h) || shortlist.has(h.id) ? `<span class="chips">${isNew(h) ? '<span class="chip chip--new">new</span>' : ''}${shortlist.has(h.id) ? '<span class="chip">shortlisted</span>' : ''}</span>` : ''}
-        </td>
-        <td data-label="">${esc(h.where)}</td>
-        <td class="num" data-label="Prize">${fmtPrize(h)}</td>
-        <td class="num" data-label="Registered">${fmtCount(h.registrations)}</td>
-        <td class="num" data-label="Closes in">${fmtDays(h.score.daysLeft)}</td>
-      </tr>`).join('');
+      <li class="entry" data-id="${esc(h.id)}" aria-selected="${h.id === s.id}">
+        <span class="entry__score">${h.score.total}<small>${h.tier.label}</small></span>
+        <a class="entry__title" href="?id=${encodeURIComponent(h.id)}" data-open="${esc(h.id)}">${esc(h.title)}</a>
+        <span class="entry__org">${esc(h.organiser || h.source)}, on ${esc(h.source)}${h.kind !== 'hackathon' ? `<span class="chip chip--cool">${esc(h.kindLabel)}</span>` : ''}${isNew(h) ? '<span class="chip chip--new">new</span>' : ''}${shortlist.has(h.id) ? '<span class="chip">shortlisted</span>' : ''}</span>
+        ${h.blurb ? `<p class="entry__blurb">${esc(h.blurb)}</p>` : ''}
+        <dl class="facts-row">
+          <div><dt>Mode</dt><dd class="word">${esc(h.modeLabel)}</dd></div>
+          <div><dt>Location</dt><dd class="word">${esc(h.place.mode === 'online' ? 'Anywhere' : h.where)}</dd></div>
+          <div><dt>Prize pool</dt><dd>${fmtPrize(h)}</dd></div>
+          <div><dt>Registered</dt><dd>${fmtCount(h.registrations)}</dd></div>
+          <div><dt>Closes in</dt><dd>${fmtDays(h.score.daysLeft)}</dd></div>
+        </dl>
+      </li>`).join('');
   }
   renderReading(ranked.find((h) => h.id === s.id));
 }
@@ -183,6 +182,7 @@ function renderReading(h) {
         <span class="reading-num">${h.score.total}</span><span class="of">of 100</span>
         <span class="tier">${h.tier.label}</span>
       </div>
+      ${h.blurb ? `<p class="reading__blurb">${esc(h.blurb)}</p>` : ''}
       <p class="reading__verdict">${esc(h.verdict)}</p>
       <div class="reading__actions">
         <a class="btn btn--primary" href="${esc(safeUrl(h.url))}" target="_blank" rel="noopener">Register on ${esc(h.source)}</a>
@@ -201,7 +201,8 @@ function renderReading(h) {
     </dl>
     <dl class="facts">
       <dt>Where</dt><dd>${esc(h.location || h.where)}</dd>
-      <dt>Format</dt><dd>${esc(h.where)}</dd>
+      <dt>Type</dt><dd>${esc(h.kindLabel)}</dd>
+      <dt>Mode</dt><dd>${esc(h.modeLabel)}${h.regionLabel ? `, ${esc(h.regionLabel)}` : ''}</dd>
       <dt>Registration closes</dt><dd class="measured">${esc(closes)}</dd>
       ${h.themes?.length ? `<dt>Themes</dt><dd>${esc([...new Set(h.themes)].slice(0, 6).join(', '))}</dd>` : ''}
       <dt>First seen</dt><dd class="measured">${esc(new Date(h.firstSeen).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }))}</dd>
@@ -214,7 +215,7 @@ function showError(err) {
   $('#rows').innerHTML = '';
   $('#headline').textContent = 'Could not load hackathons';
   $('#subline').textContent = '';
-  $('#notice').innerHTML = `<div class="notice notice--error"><h2>The list did not load</h2><p>${esc(err.message)} If you run Radar locally, start it with <span class="measured">npm start</span>, which fetches a fresh list first.</p><button class="btn" type="button" data-retry>Try again</button></div>`;
+  $('#notice').innerHTML = `<div class="notice notice--error"><h2>The list did not load</h2><p>${esc(err.message)} If you run Hackathon-bud yourself, start it with <span class="measured">npm start</span>, which fetches a fresh list first.</p><button class="btn" type="button" data-retry>Try again</button></div>`;
   $('[data-retry]').addEventListener('click', load);
 }
 
@@ -234,7 +235,7 @@ function open(id, push = true) { setParam('id', id, push); render(); if (id && m
 document.addEventListener('click', (e) => {
   const opener = e.target.closest('[data-open]');
   if (opener && !e.metaKey && !e.ctrlKey) { e.preventDefault(); open(opener.dataset.open); return; }
-  const row = e.target.closest('tr[data-id]');
+  const row = e.target.closest('li[data-id]');
   if (row && !e.target.closest('a')) { open(row.dataset.id); return; }
   if (e.target.closest('[data-close]')) { open('', false); return; }
   const id = readState().id;
@@ -259,17 +260,17 @@ addEventListener('popstate', () => { syncForm(); render(); });
 const form = $('#filters');
 function syncForm() {
   const s = readState();
-  form.where.value = s.where; form.cash.checked = s.cash; form.rest.checked = s.rest; form.sort.value = s.sort; form.q.value = s.q;
+  form.where.value = s.where; form.kind.value = s.kind; form.cash.checked = s.cash; form.sort.value = s.sort; form.q.value = s.q;
 }
 form.addEventListener('submit', (e) => e.preventDefault());
 form.addEventListener('input', (e) => {
   const t = e.target;
-  if (t.name === 'where') setParam('where', t.value === 'all' ? '' : t.value);
+  if (t.name === 'where') setParam('where', t.value === 'any' ? '' : t.value);
+  if (t.name === 'kind') setParam('kind', t.value === 'hackathon' ? '' : t.value);
   if (t.name === 'cash') setParam('cash', t.checked ? '' : '0');
-  if (t.name === 'rest') setParam('rest', t.checked);
   if (t.name === 'sort') setParam('sort', t.value === 'score' ? '' : t.value);
   if (t.name === 'q') setParam('q', t.value);
-  ['cash', 'rest'].includes(t.name) ? rerank() : render();
+  ['cash', 'where', 'kind'].includes(t.name) ? rerank() : render();
 });
 
 // settings
@@ -278,17 +279,15 @@ $('#settings-toggle').addEventListener('click', (e) => {
   const open = $('#settings').hidden;
   $('#settings').hidden = !open;
   e.currentTarget.setAttribute('aria-expanded', String(open));
-  if (open) sform.name.focus();
+  if (open) sform.interests.focus();
 });
-sform.name.value = prefs.name; sform.interests.value = prefs.interests.join(', '); sform.minScore.value = prefs.minScore || 0;
+sform.interests.value = prefs.interests.join(', '); sform.minScore.value = prefs.minScore || 0;
 sform.addEventListener('submit', (e) => e.preventDefault());
 sform.addEventListener('input', () => {
-  prefs = { ...prefs, name: sform.name.value.trim() || 'you', interests: sform.interests.value.split(',').map((s) => s.trim()).filter(Boolean), minScore: Number(sform.minScore.value) || 0 };
+  prefs = { ...prefs, interests: sform.interests.value.split(',').map((s) => s.trim()).filter(Boolean), minScore: Number(sform.minScore.value) || 0 };
   store.set('prefs', prefs);
-  document.querySelectorAll('[data-name]').forEach((n) => (n.textContent = prefs.name));
   if (data) rerank();
 });
-document.querySelectorAll('[data-name]').forEach((n) => (n.textContent = prefs.name));
 
 // theme
 function paintThemeButton() {
@@ -299,23 +298,11 @@ function paintThemeButton() {
 $('#theme').addEventListener('click', () => {
   const light = document.documentElement.dataset.theme !== 'light';
   if (light) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
-  try { localStorage.setItem('radar.theme', light ? 'light' : ''); } catch {}
+  try { localStorage.setItem('bud.theme', light ? 'light' : ''); } catch {}
   paintThemeButton();
 });
 paintThemeButton();
 
-// refresh, only where the local server is running
-fetch('api/health').then((r) => r.ok && ($('#refresh').hidden = false)).catch(() => {});
-$('#refresh').addEventListener('click', async (e) => {
-  const b = e.currentTarget;
-  b.setAttribute('aria-busy', 'true'); b.disabled = true; b.textContent = 'Refreshing';
-  try {
-    const r = await fetch('api/refresh', { method: 'POST' });
-    if (!r.ok) throw new Error(`Refresh answered ${r.status}`);
-    await load();
-  } catch (err) { toast(err.message); }
-  finally { b.removeAttribute('aria-busy'); b.disabled = false; b.textContent = 'Refresh'; }
-});
 
 // remember this visit after the list has been seen, so "new" survives a reload in the same sitting
 addEventListener('pagehide', () => store.set('lastVisit', data?.fetchedAt || new Date().toISOString()));

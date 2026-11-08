@@ -3,7 +3,7 @@
 // Pure fetch + regex so the same file runs in Node, a browser extension
 // service worker, and anywhere else with a global fetch.
 
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) HackathonRadar/1.0';
+const UA = 'Mozilla/5.0 (X11; Linux x86_64) HackathonBud/1.0';
 
 async function getJSON(url, init = {}) {
   const res = await fetch(url, { ...init, headers: { 'User-Agent': UA, Accept: 'application/json', ...(init.headers || {}) } });
@@ -11,12 +11,47 @@ async function getJSON(url, init = {}) {
   return res.json();
 }
 
+const ENTITIES = { nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', ndash: '–', mdash: '—', hellip: '…', bull: '•', rarr: '→', middot: '·', copy: '©', reg: '®', trade: '™', rupee: '₹', inr: '₹' };
 const stripTags = (s = '') =>
   s.replace(/<[^>]*>/g, ' ')
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
-    .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+    .replace(/&([a-z]+);/gi, (m, n) => ENTITIES[n.toLowerCase()] ?? m)
     .replace(/\s+/g, ' ').trim();
+
+// Markdown to plain text, enough for a two-line summary.
+const stripMarkdown = (s = '') =>
+  s.replace(/```[\s\S]*?```/g, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, ' ').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^#+\s.*$/gm, ' ').replace(/[*_`>#|~-]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+// The first sentence or two that says what the event is, up to about 220 characters.
+const NOT_A_SUMMARY = /^(eligibility|rules?|note|prizes?|rewards?|registration|teams?|round|stage|timeline|important|dates?|venue|fee|contact|faq|guidelines|instructions|participation|who can)\b/i;
+
+// The first sentence or two that says what the event is, up to about 220 characters.
+// Sentences that are rules, prizes or dates are skipped, since the facts strip shows those.
+export function summarise(text = '') {
+  const t = text.replace(/^(about( the (event|hackathon|challenge|competition))?|overview|description|introduction)\s*:?\s*/i, '').trim();
+  const sentences = t.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean);
+  const keep = [];
+  for (const x of sentences) {
+    if (!keep.length && (NOT_A_SUMMARY.test(x) || x.length < 25)) continue;
+    if (keep.join(' ').length + x.length > 220) break;
+    keep.push(x);
+  }
+  if (keep.length) return keep.join(' ');
+  const first = sentences.find((x) => !NOT_A_SUMMARY.test(x)) || t;
+  return first.length <= 220 ? first : `${first.slice(0, 217).replace(/\s+\S*$/, '')}…`;
+}
+
+// The description an event page gives search engines and link previews.
+export async function fetchDescription(url) {
+  if (!/^https:\/\//.test(url)) return '';
+  const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return '';
+  const html = (await res.text()).slice(0, 200000);
+  const m = html.match(/<meta[^>]+(?:property="og:description"|name="description")[^>]+content="([^"]*)"/i) || html.match(/<meta[^>]+content="([^"]*)"[^>]+(?:property="og:description"|name="description")/i);
+  return m ? summarise(stripMarkdown(stripTags(m[1]))) : '';
+}
 
 // ---------- Unstop ----------
 export async function fetchUnstop({ maxPages = 6 } = {}) {
@@ -46,7 +81,7 @@ export async function fetchUnstop({ maxPages = 6 } = {}) {
         starts: x.start_date || null,
         themes: (x.workfunction || []).map((w) => w.name).concat((x.required_skills || []).map((s) => s.skill_name || s.skill)).filter(Boolean),
         signals: { featured: !!x.featured },
-        blurb: stripTags(x.details).slice(0, 400),
+        blurb: summarise(stripTags(x.details)),
       });
     }
     if (page >= data.last_page) break;
@@ -134,7 +169,7 @@ export async function fetchDevfolio() {
         starts: x.starts_at || null,
         themes: (x.themes || []).map((t) => t.name || t).filter((t) => typeof t === 'string'),
         signals: { verified: !!x.verified, official: !!x.devfolio_official, featured: !!x.featured },
-        blurb: x.tagline || '',
+        blurb: summarise(stripMarkdown(x.desc || '')) || x.tagline || '',
       });
     }
   }

@@ -2,24 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Hackathon radar</title>
+  <title>Hackathon-bud</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Archivo:wdth,wght@125,800&display=swap">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header class="top">
-    <h1 id="headline">Radar</h1>
+    <div class="head"><span class="mark" aria-label="Hackathon-bud">Hackath<span class="o">o</span>n<span class="dash">-</span>bud</span><p id="headline"></p></div>
     <button class="btn" type="button" id="refresh">Check now</button>
   </header>
   <form class="where" id="where" aria-label="Where">
-    <label><input type="radio" name="w" value="all" checked><span>All</span></label>
-    <label><input type="radio" name="w" value="online"><span>Online</span></label>
-    <label><input type="radio" name="w" value="north"><span>North India</span></label>
-    <label><input type="radio" name="w" value="bangalore"><span>Bengaluru</span></label>
+    <label class="visually-hidden" for="w">Where</label>
+    <select id="w" name="w">
+      <option value="any">Anywhere in India, and online</option>
+      <option value="online">Online only</option>
+      <option value="north">North India, and online</option>
+      <option value="south">South India, and online</option>
+      <option value="west">West India, and online</option>
+      <option value="east">East India, and online</option>
+      <option value="central">Central India, and online</option>
+    </select>
   </form>
   <ol class="list" id="list" aria-live="polite"></ol>
   <footer class="foot">
     <p id="status"></p>
-    <a id="full" href="http://localhost:4321/" target="_blank" rel="noopener">Open the full radar</a>
+    <a id="full" href="http://localhost:4321/" target="_blank" rel="noopener">See every hackathon</a>
   </footer>
   <script type="module" src="popup.js"></script>
 </body>
