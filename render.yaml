@@ -1,27 +1,25 @@
 # Render Blueprint: New > Blueprint, pick this repo, fill in the secrets.
 #
-# Paid Starter instance ($7/month) so it never sleeps: the 8:00 IST digest and
-# the six-hourly refresh run on their own, no outside pinger needed. Subscribers
-# and the list live on a 1 GB persistent disk (about $0.25/month), which
-# survives deploys. Roughly $7.25 a month, so $50 of credit lasts about six months.
+# Free plan. A free service sleeps after 15 minutes without visitors and its
+# disk is wiped whenever it sleeps or redeploys, so:
+#   - subscribers and the list live in Postgres (DATABASE_URL; a free Neon
+#     database never expires), and
+#   - .github/workflows/wake.yml calls /api/cron on a schedule, which wakes the
+#     service, refreshes the list and sends the 8:00 IST digest.
 services:
   - type: web
     name: hackathon-bud
     runtime: node
-    plan: starter
+    plan: free
     region: singapore
-    buildCommand: npm ci && npm run sync
+    buildCommand: npm ci && npm run build
     startCommand: node server.mjs
     healthCheckPath: /api/health
-    disk:
-      name: data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "24"
-      - key: DATA_DIR
-        value: /var/data
+      - key: DATABASE_URL
+        sync: false
       # Mail: either SMTP_URL + MAIL_FROM (any provider, any sender address)
       # or GMAIL_USER + GMAIL_APP_PASSWORD (the Gmail address is the sender).
       - key: SMTP_URL
@@ -33,4 +31,4 @@ services:
       - key: GMAIL_APP_PASSWORD
         sync: false
       - key: CRON_SECRET
-        generateValue: true
+        sync: false

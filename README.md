@@ -39,16 +39,24 @@ Handy commands:
 | `npm run digest:preview` | Write `digest-preview.html` to look at |
 | `MAIL_DRY_RUN=1 npm start` | Print emails to the console instead of sending |
 
-## Deploy on Render
+## Deploy on Render (free)
 
-`render.yaml` sets up a **Starter** web service ($7/month, never sleeps) with a **1 GB disk** for subscribers and the list (about $0.25/month). That is roughly $7.25 a month, so $50 of credit covers about six months. The 8:00 digest and six-hourly refresh run by themselves.
+A free Render service sleeps after 15 minutes without visitors, and its disk is wiped when it sleeps or redeploys. Two free pieces cover that:
 
-1. Put this folder in its own GitHub repo and push it.
-2. In Render: **New → Blueprint**, pick the repo.
-3. Fill in the mail settings (see below). `CRON_SECRET` is generated for you.
-4. Open the `.onrender.com` address once it's live. The first visit fetches the list, which takes about 30 seconds.
+- **Neon Postgres** keeps subscribers and the list. Its free database doesn't expire, unlike Render's free Postgres, which expires after 30 days.
+- **A GitHub Action** (`.github/workflows/wake.yml`) calls `/api/cron` at 8:00 IST and three more times a day. Each call wakes the service, refreshes the list, and sends the digest if it hasn't gone out today.
 
-To spend less, change `plan: starter` to `plan: free` and remove the `disk:` block. A free service sleeps after 15 minutes idle, so it then needs a daily ping of `/api/cron?key=<CRON_SECRET>` from [cron-job.org](https://cron-job.org) to send the digest, and a `DATABASE_URL` (free [Neon](https://neon.tech) Postgres) so subscribers survive deploys.
+Steps:
+1. **Database:** sign up at [neon.tech](https://neon.tech), create a project in the Singapore region, and copy its connection string (`postgresql://...`).
+2. **Secret:** make up a long random string for `CRON_SECRET`, e.g. the output of `openssl rand -hex 24`.
+3. **Repo:** put this folder in its own GitHub repo and push it.
+4. **Render:** **New → Blueprint**, pick the repo. Fill in `DATABASE_URL` (from Neon), `CRON_SECRET`, and the mail settings (see below).
+5. **GitHub:** in the repo, **Settings → Secrets and variables → Actions**, add `SITE_URL` (your `https://<app>.onrender.com`) and `CRON_SECRET` (the same value). Then **Actions → Wake Hackathon-bud → Run workflow** once to check that it works.
+
+Notes:
+- GitHub can start scheduled runs 10 to 30 minutes late, so the digest may land around 8:15. For exact timing, ping the same URL from [cron-job.org](https://cron-job.org) instead.
+- The first visit after the service has slept takes up to a minute while it wakes up.
+- Free Render hours (750 a month) cover one always-on service, so a few wake-ups a day are well within it.
 
 ## Who the email comes from
 

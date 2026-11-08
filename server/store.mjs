@@ -30,7 +30,7 @@ async function fileStore(dir) {
 
 async function pgStore(url) {
   const { default: pg } = await import('pg');
-  const pool = new pg.Pool({ connectionString: url, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false }, max: 3 });
+  const pool = new pg.Pool({ connectionString: url, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: true }, max: 3 });
   await pool.query(`create table if not exists bud_kv (key text primary key, value jsonb not null, updated_at timestamptz default now());
     create table if not exists bud_subscribers (email text primary key, token text unique not null, data jsonb not null);`);
   const one = async (q, a) => (await pool.query(q, a)).rows[0] ?? null;

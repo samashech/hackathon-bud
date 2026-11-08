@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Hackathon-bud: hackathons worth your weekend from Unstop, Devpost, Devfolio and MLH, on a website, a browser extension and a daily email.",
   "scripts": {
+    "build": "node scripts/sync-core.mjs",
     "sync": "node scripts/sync-core.mjs",
     "start": "npm run sync && node --env-file-if-exists=.env server.mjs",
     "refresh": "node --env-file-if-exists=.env scripts/refresh.mjs",
@@ -16,6 +17,8 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@neon/config": "^1.13.0",
+    "@neon/env": "^2.1.0",
     "nodemailer": "^6.9.16",
     "pg": "^8.23.1"
   }

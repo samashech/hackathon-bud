@@ -23,7 +23,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const store = await openStore();
-log(`store: ${store.kind}; email: ${mailReady() ? (process.env.SMTP_URL ? 'SMTP ready' : 'Gmail ready') : 'not configured'}; site: ${SITE}`);
+log(`store: ${store.kind}; email: ${process.env.MAIL_DRY_RUN === '1' ? 'dry run, printed not sent' : mailReady() ? (process.env.SMTP_URL ? 'SMTP ready' : 'Gmail ready') : 'not configured'}; site: ${SITE}`);
 
 let data = await store.kvGet('hackathons');
 let refreshing = null;

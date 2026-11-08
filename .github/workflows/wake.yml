@@ -1,0 +1,28 @@
+# Wakes the free Render service so the list stays fresh and the daily digest
+# goes out. 02:30 UTC is 8:00 IST; the other runs refresh the list.
+# Needs two repository secrets: SITE_URL (https://<app>.onrender.com) and
+# CRON_SECRET (the same value as on Render).
+name: Wake Hackathon-bud
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+    - cron: "30 8,14,20 * * *"
+  workflow_dispatch:
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call /api/cron
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          # A sleeping free service takes up to a minute to start, so retry.
+          for i in 1 2 3 4 5; do
+            if curl -fsS --max-time 240 -X POST -H "Authorization: Bearer $CRON_SECRET" "${SITE_URL%/}/api/cron"; then echo; exit 0; fi
+            sleep 30
+          done
+          exit 1
