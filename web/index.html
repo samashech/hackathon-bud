@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hackathon radar</title>
+  <meta name="description" content="Sameer's shortlist of hackathons worth a weekend: online anywhere, in person around north India and Bengaluru, ranked by crowd, cash and who runs them.">
+  <meta name="theme-color" content="#1b1d21">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script>try { const t = localStorage.getItem('radar.theme'); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
+</head>
+<body>
+  <header class="bar">
+    <div class="container bar__inner">
+      <a class="wordmark" href="./" aria-label="Hackathon radar, home">Radar <span>for <span data-name>Sameer</span></span></a>
+      <p class="bar__status" id="status" aria-live="polite"></p>
+      <div class="bar__actions">
+        <button class="btn btn--quiet" type="button" id="refresh" hidden>Refresh</button>
+        <button class="btn btn--quiet" type="button" id="settings-toggle" aria-expanded="false" aria-controls="settings">Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="settings" id="settings" hidden aria-label="Settings">
+    <form class="container settings__inner" id="settings-form">
+      <label class="field">Your name
+        <input class="input" name="name" autocomplete="given-name" type="text">
+      </label>
+      <label class="field">What you like building, comma separated
+        <input class="input" name="interests" type="text" autocomplete="off">
+      </label>
+      <label class="field">Hide anything scoring under
+        <input class="input" name="minScore" type="number" inputmode="numeric" min="0" max="100" step="5">
+      </label>
+      <div class="field">Colours
+        <button class="btn" type="button" id="theme" aria-label="Switch to daylight colours">Daylight</button>
+      </div>
+      <p class="settings__hint">Interests nudge the score a little and are mentioned in the reading. In person, you see north India and Bengaluru; abroad, only online or hybrid events. Changes save on this device as you type.</p>
+    </form>
+  </section>
+
+  <main class="container">
+    <section class="summary">
+      <div>
+        <h1 id="headline">Finding hackathons worth a weekend</h1>
+        <p id="subline">Checking Unstop, Devpost, Devfolio and MLH.</p>
+      </div>
+      <nav class="tabs" aria-label="Lists">
+        <a href="?view=ranked" data-view="ranked" aria-current="page">Ranked <span class="count" data-count="ranked"></span></a>
+        <a href="?view=shortlist" data-view="shortlist">Shortlist <span class="count" data-count="shortlist"></span></a>
+        <a href="?view=hidden" data-view="hidden">Hidden <span class="count" data-count="hidden"></span></a>
+      </nav>
+    </section>
+
+    <form class="filters" id="filters" role="search" aria-label="Filter hackathons">
+      <div class="seg" role="radiogroup" aria-label="Where">
+        <label><input type="radio" name="where" value="all" checked><span>Everywhere</span></label>
+        <label><input type="radio" name="where" value="online"><span>Online</span></label>
+        <label><input type="radio" name="where" value="north"><span>North India</span></label>
+        <label><input type="radio" name="where" value="bangalore"><span>Bengaluru</span></label>
+      </div>
+      <label class="check"><input type="checkbox" name="cash" checked> Cash prize only</label>
+      <label class="check"><input type="checkbox" name="rest"> Rest of India too</label>
+      <label class="visually-hidden" for="sort">Sort by</label>
+      <select class="select sort" id="sort" name="sort">
+        <option value="score">Most worth it</option>
+        <option value="closing">Closing soonest</option>
+        <option value="prize">Biggest prize</option>
+        <option value="crowd">Most registered</option>
+        <option value="new">Newest found</option>
+      </select>
+      <label class="visually-hidden" for="q">Search</label>
+      <input class="input search" id="q" name="q" type="search" placeholder="Search by name, organiser or city" autocomplete="off">
+    </form>
+
+    <div class="workspace">
+      <div id="list" aria-live="polite" aria-busy="true">
+        <table class="table" aria-label="Hackathons">
+          <thead><tr><th class="num">Worth</th><th>Hackathon</th><th>Where</th><th class="num">Cash prize</th><th class="num">Registered</th><th class="num">Closes</th></tr></thead>
+          <tbody id="rows">
+            <tr class="skel"><td><span class="w1"></span></td><td><span class="w2"></span></td><td><span class="w3"></span></td><td><span></span></td><td><span></span></td><td><span></span></td></tr>
+            <tr class="skel"><td><span class="w1"></span></td><td><span class="w2"></span></td><td><span class="w3"></span></td><td><span></span></td><td><span></span></td><td><span></span></td></tr>
+            <tr class="skel"><td><span class="w1"></span></td><td><span class="w2"></span></td><td><span class="w3"></span></td><td><span></span></td><td><span></span></td><td><span></span></td></tr>
+            <tr class="skel"><td><span class="w1"></span></td><td><span class="w2"></span></td><td><span class="w3"></span></td><td><span></span></td><td><span></span></td><td><span></span></td></tr>
+          </tbody>
+        </table>
+        <div id="notice"></div>
+      </div>
+
+      <aside class="reading reading--empty" id="reading" aria-label="Why this hackathon is worth it">
+        <div class="reading__top">
+          <p>Pick a hackathon to see its reading: how many people signed up, what it pays, who runs it, and how much time is left.</p>
+        </div>
+      </aside>
+    </div>
+
+    <p class="sources" id="sources"></p>
+  </main>
+
+  <div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button class="btn" type="button" id="toast-undo">Undo</button></div>
+
+  <noscript><p class="container">Radar needs JavaScript to rank hackathons. The raw list is at <a href="data/hackathons.json">data/hackathons.json</a>.</p></noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

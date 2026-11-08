@@ -1,0 +1,20 @@
+{
+  "name": "hackathon-radar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Finds hackathons worth a weekend on Unstop, Devpost, Devfolio and MLH, and ranks them.",
+  "scripts": {
+    "sync": "node scripts/sync-core.mjs",
+    "refresh": "node scripts/refresh.mjs",
+    "start": "npm run sync && node scripts/refresh.mjs && node server.mjs",
+    "serve": "npm run sync && node server.mjs",
+    "digest": "node scripts/digest.mjs",
+    "digest:preview": "node scripts/digest.mjs --preview",
+    "extension:zip": "npm run sync && cd extension && zip -qr ../radar-extension.zip . -x '*.DS_Store'"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  }
+}

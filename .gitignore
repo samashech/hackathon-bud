@@ -1,0 +1,9 @@
+node_modules/
+web/core/
+web/data/
+extension/core/
+digest-preview.html
+radar-extension.zip
+.env
+# cloned reference repos, each its own git checkout
+design-skills/
