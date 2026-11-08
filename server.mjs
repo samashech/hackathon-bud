@@ -10,7 +10,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { rank, DEFAULT_PREFS } from './core/index.mjs';
 import { openStore } from './server/store.mjs';
 import { refresh, sendDigests, topFor, prefsFor, regionText, REGIONS, STRONG } from './server/jobs.mjs';
-import { send, confirmEmail, digestEmail, mailReady } from './server/email.mjs';
+import { send, confirmEmail, digestEmail, mailReady, mailKind } from './server/email.mjs';
 import { regionOptions, issueRows, topRows, ago, messagePage } from './server/pages.mjs';
 
 const WEB = join(fileURLToPath(new URL('.', import.meta.url)), 'web');
@@ -23,7 +23,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const store = await openStore();
-log(`store: ${store.kind}; email: ${process.env.MAIL_DRY_RUN === '1' ? 'dry run, printed not sent' : mailReady() ? (process.env.SMTP_URL ? 'SMTP ready' : 'Gmail ready') : 'not configured'}; site: ${SITE}`);
+log(`store: ${store.kind}; email: ${mailKind()}; site: ${SITE}`);
 
 let data = await store.kvGet('hackathons');
 let refreshing = null;
@@ -83,7 +83,13 @@ async function subscribe(req, { email, region, others }) {
   if (existing?.lastConfirmMailAt && Date.now() - new Date(existing.lastConfirmMailAt) < 10 * 60e3) return [200, 'We just sent you a link. Check your inbox and spam folder.'];
   const token = existing?.token || randomBytes(24).toString('hex');
   await store.saveSub({ ...(existing || { email, token, createdAt: new Date().toISOString() }), token, pendingRegion: region, pendingOthers: !!others, lastConfirmMailAt: new Date().toISOString() });
-  await send({ to: email, ...confirmEmail({ link: `${SITE}confirm?token=${token}`, regionText: regionText(region) }) });
+  try {
+    await send({ to: email, ...confirmEmail({ link: `${SITE}confirm?token=${token}`, regionText: regionText(region) }) });
+  } catch (e) {
+    log('confirm email failed', e.message);
+    await store.saveSub({ ...(await store.getSub(email)), lastConfirmMailAt: undefined });
+    return [502, 'We could not send the email just now. Try again in a few minutes.'];
+  }
   return [200, existing?.confirmedAt ? 'Check your inbox to confirm the change.' : 'Almost there. Check your inbox for a link to confirm.'];
 }
 

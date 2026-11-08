@@ -58,6 +58,17 @@ Notes:
 - The first visit after the service has slept takes up to a minute while it wakes up.
 - Free Render hours (750 a month) cover one always-on service, so a few wake-ups a day are well within it.
 
+## Email on Render's free plan
+
+Render's free plan blocks outgoing SMTP, so Gmail with an app password times out there (signup shows "We could not send the email"). Send through a Google Apps Script relay instead. It runs in your Google account, sends with your Gmail, and the site reaches it over HTTPS:
+
+1. Open [script.google.com](https://script.google.com) as the Gmail that should send, create a new project, and paste in `deploy/gmail-relay.gs`.
+2. Change `SECRET` in it to a long random string (e.g. `openssl rand -hex 24`).
+3. **Deploy → New deployment → Web app**, set Execute as **Me** and Who has access **Anyone**, deploy, then allow the permissions.
+4. On Render, set `MAIL_RELAY_URL` to the web app URL (ends in `/exec`) and `MAIL_RELAY_SECRET` to the same secret. You can leave the Gmail and SMTP settings empty.
+
+A personal Gmail sends to about 100 recipients a day this way. The relay refuses any request without the secret.
+
 ## Who the email comes from
 
 | Setup | Friends see | Effort |

@@ -8,27 +8,47 @@ let transport = null;
 // MAIL_DRY_RUN=1 prints each email instead of sending it, for testing.
 const DRY = process.env.MAIL_DRY_RUN === '1';
 
-// Two ways to send:
-//   SMTP_URL + MAIL_FROM   any provider (Brevo, Resend, Zoho, a second Gmail...),
-//                          e.g. SMTP_URL=smtps://user:pass@smtp-relay.brevo.com:465
-//                               MAIL_FROM="Hackathon-bud <hello@yourdomain.in>"
-//   GMAIL_USER + GMAIL_APP_PASSWORD   a Gmail account; it is also the sender.
+// Three ways to send, tried in this order:
+//   MAIL_RELAY_URL + MAIL_RELAY_SECRET   a Google Apps Script web app that sends
+//        through your Gmail over HTTPS (deploy/gmail-relay.gs). Use this on
+//        Render's free plan, which blocks outgoing SMTP.
+//   SMTP_URL + MAIL_FROM   any SMTP provider, any sender address
+//   GMAIL_USER + GMAIL_APP_PASSWORD   Gmail over SMTP; fine on your own machine
+const relayUrl = () => process.env.MAIL_RELAY_URL || '';
 const smtpUrl = () => process.env.SMTP_URL || '';
 const gmail = () => !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
-export function mailReady() { return DRY || !!smtpUrl() || gmail(); }
+export function mailReady() { return DRY || !!relayUrl() || !!smtpUrl() || gmail(); }
+export function mailKind() { return DRY ? 'dry run, printed not sent' : relayUrl() ? 'Gmail relay ready' : smtpUrl() ? 'SMTP ready' : gmail() ? 'Gmail ready' : 'not configured'; }
 function fromAddress() {
   if (process.env.MAIL_FROM) return process.env.MAIL_FROM;
   return `Hackathon-bud <${process.env.GMAIL_USER || 'hackathon-bud@localhost'}>`;
 }
 
+async function sendViaRelay({ to, subject, html, text }) {
+  const res = await fetch(relayUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret: process.env.MAIL_RELAY_SECRET || '', to, subject, html, text, name: 'Hackathon-bud', replyTo: process.env.MAIL_REPLY_TO || '' }),
+    redirect: 'follow', // Apps Script answers through a redirect to googleusercontent.com
+    signal: AbortSignal.timeout(30000),
+  });
+  const body = await res.text();
+  let reply = {};
+  try { reply = JSON.parse(body); } catch {}
+  if (!res.ok || !reply.ok) throw new Error(`relay: ${reply.error || `${res.status} ${body.slice(0, 120)}`}`);
+}
+
 export async function send({ to, subject, html, text, unsubscribe }) {
-  if (!mailReady()) throw new Error('No email settings: set SMTP_URL and MAIL_FROM, or GMAIL_USER and GMAIL_APP_PASSWORD');
+  if (!mailReady()) throw new Error('No email settings: set MAIL_RELAY_URL, SMTP_URL and MAIL_FROM, or GMAIL_USER and GMAIL_APP_PASSWORD');
   if (DRY) { console.log(`[dry run] from ${fromAddress()} to ${to}: ${subject}${unsubscribe ? ` (unsubscribe ${unsubscribe})` : ''}\n${(text || '').split('\n').slice(0, 6).join('\n')}`); return; }
+  if (relayUrl()) return sendViaRelay({ to, subject, html, text });
   if (!transport) {
     const { default: nodemailer } = await import('nodemailer');
+    // Fail in seconds, not minutes, when a host blocks SMTP.
+    const limits = { pool: true, maxConnections: 1, connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 30000 };
     transport = smtpUrl()
-      ? nodemailer.createTransport(smtpUrl(), { pool: true, maxConnections: 1 })
-      : nodemailer.createTransport({ service: 'gmail', pool: true, maxConnections: 1, auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD.replace(/\s+/g, '') } });
+      ? nodemailer.createTransport(smtpUrl(), limits)
+      : nodemailer.createTransport({ service: 'gmail', ...limits, auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD.replace(/\s+/g, '') } });
   }
   const headers = unsubscribe ? { 'List-Unsubscribe': `<${unsubscribe}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {};
   await transport.sendMail({ from: fromAddress(), replyTo: process.env.MAIL_REPLY_TO || undefined, to, subject, text, html, headers });

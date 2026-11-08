@@ -20,8 +20,13 @@ services:
         value: "24"
       - key: DATABASE_URL
         sync: false
-      # Mail: either SMTP_URL + MAIL_FROM (any provider, any sender address)
-      # or GMAIL_USER + GMAIL_APP_PASSWORD (the Gmail address is the sender).
+      # Mail. Render's free plan blocks outgoing SMTP, so use the Gmail relay:
+      # MAIL_RELAY_URL + MAIL_RELAY_SECRET (deploy/gmail-relay.gs). SMTP_URL and
+      # GMAIL_* only work on hosts that allow SMTP, such as your own machine.
+      - key: MAIL_RELAY_URL
+        sync: false
+      - key: MAIL_RELAY_SECRET
+        sync: false
       - key: SMTP_URL
         sync: false
       - key: MAIL_FROM
