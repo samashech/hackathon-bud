@@ -133,6 +133,7 @@ h3, .issue .t { font-family: var(--font-body); font-weight: 700; letter-spacing:
 .hk__tier { display: block; margin-top: var(--space-xs); font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); letter-spacing: 0; }
 .hk h3 { font-size: var(--text-title); max-width: 36ch; }
 .hk__org { color: var(--color-muted); font-size: var(--text-sm); margin-top: var(--space-2xs); }
+.tag { display: inline-flex; align-items: center; min-height: 22px; padding: 0 var(--space-xs); margin-left: var(--space-2xs); border: var(--rule-hair) dashed var(--color-rule-2); border-radius: 4px; font: 500 var(--text-xs)/1 var(--font-body); color: var(--color-ink); vertical-align: 2px; white-space: nowrap; letter-spacing: 0; }
 .hk__blurb { color: var(--color-ink-2); margin-top: var(--space-sm); max-width: 72ch; }
 .hk__facts { display: grid; grid-template-columns: repeat(5, minmax(0, auto)); justify-content: start; gap: var(--space-xs) var(--space-xl); margin: var(--space-lg) 0 0; }
 .hk__facts dt { font-size: var(--text-sm); color: var(--color-muted); font-weight: 500; }

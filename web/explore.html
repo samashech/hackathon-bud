@@ -75,6 +75,12 @@
         <option value="promptathon">Promptathons</option>
         <option value="all">All three</option>
       </select>
+      <label class="visually-hidden" for="stack">Sponsor tools</label>
+      <select class="select stack" id="stack" name="stack">
+        <option value="any">Any stack</option>
+        <option value="open">Open stack only</option>
+        <option value="sponsored">Sponsor tool or platform</option>
+      </select>
       <label class="check"><input type="checkbox" name="cash" checked> Cash prize only</label>
       <label class="visually-hidden" for="sort">Sort by</label>
       <select class="select sort" id="sort" name="sort">
@@ -90,13 +96,14 @@
 
     <div class="workspace">
       <div id="list" aria-live="polite" aria-busy="true">
-        <ol class="ledger" id="rows">
+        <div id="rows"><ol class="ledger">
           <li class="skel"><span class="s1"></span><span class="s2"></span><span class="s3"></span></li>
           <li class="skel"><span class="s1"></span><span class="s2"></span><span class="s3"></span></li>
           <li class="skel"><span class="s1"></span><span class="s2"></span><span class="s3"></span></li>
           <li class="skel"><span class="s1"></span><span class="s2"></span><span class="s3"></span></li>
-        </ol>
+        </ol></div>
         <div id="notice"></div>
+        <div class="more-row" id="more"></div>
       </div>
 
       <aside class="reading reading--empty" id="reading" aria-label="Why this hackathon is worth it">

@@ -89,6 +89,54 @@ export function classifyKind(h) {
 }
 export const KIND_LABEL = { hackathon: 'Hackathon', ideathon: 'Ideathon', promptathon: 'Promptathon' };
 
+// Whether an event ties you to a sponsor's product.
+//   tool     the listing says to build on or with a named product ("Build on Forge")
+//   company  a company runs it under its own name ("PayPal AI Hackathon"), which
+//            usually means building on that company's platform. Counted only for
+//            Devpost-managed challenges (Devpost's sponsor-run tier) or well-known
+//            companies, since small organisers name events after themselves too.
+//   open     colleges, communities, MLH: bring your own stack
+// Only the title and description are read, so a sponsor that is not named
+// there is missed; the tag errs toward "open".
+const GENERIC = new Set(['AI', 'ML', 'GenAI', 'Gen', 'Generative', 'Agentic', 'Agents', 'Technology', 'Tech', 'Code', 'Python', 'Java', 'JavaScript', 'TypeScript', 'React', 'Web', 'Web3', 'Blockchain', 'Data', 'Context', 'Purpose', 'Impact', 'India', 'Indian', 'Real', 'Open', 'Friends', 'Us', 'The', 'Your', 'Our', 'It', 'Me', 'IoT', 'AR', 'VR', 'XR', 'Cloud', 'LLMs', 'LLM', 'APIs', 'API', 'Innovation', 'Ideas', 'Students', 'Developers', 'Builders', 'Bharat', 'Space', 'Health', 'Fintech', 'Climate', 'Love', 'Passion', 'Confidence', 'Speed', 'Style', 'Artificial', 'Intelligence', 'Machine', 'Learning', 'Deep', 'CTF', 'Website', 'Link', 'Official', 'Registration', 'Python3', 'GitHub', 'Git']);
+const TOOL_PATTERNS = [
+  /\b[Bb]uil[dt](?:ing)?\s+(?:on|with|using)\s+([A-Z][\w+-]*(?:\.[a-z]{2,4})?(?: [A-Z][\w+-]*(?:\.[a-z]{2,4})?)?)/,
+  /\b(?:[Pp]ublish(?:ed)?\s+(?:it\s+|It\s+)?on|[Pp]owered\s+by|[Uu]sing|[Oo]n\s+top\s+of|[Ss]kills\s+to|[Ii]ntegrat\w*\s+with|[Ee]xtend)\s+([A-Z][\w+-]*(?:\.[a-z]{2,4})?(?: [A-Z][\w+-]*(?:\.[a-z]{2,4})?)?)/,
+  /\b([A-Z][\w+-]+)\s+(?:SDK|APIs?|[Dd]eveloper\s+[Pp]latform)\b/,
+  /\b(?:[Ll]earn|[Hh]ack|[Cc]reate)\s+\w+\s+with\s+([A-Z][A-Z0-9]{2,})\b/,
+];
+const NOT_A_COMPANY = /\b(university|college|institute|iit|nit|iiit|bits|school|vidyalaya|academy|gdg|google developer|student|club|chapter|society|community|association|council|cell|forum|ieee|acm|mlh|major league hacking|devpost|unstop|devfolio|hackclub|hack club)\b/i;
+const ORG_STOP = new Set(['hack', 'hacks', 'hackathon', 'community', 'club', 'labs', 'lab', 'tech', 'team', 'foundation', 'the', 'global', 'india', 'limited', 'ltd', 'pvt', 'private', 'inc', 'technology', 'technologies', 'solutions', 'group', 'and', 'for', 'build', 'builders', 'makers', 'more', 'need', 'kong', 'hong']);
+const productOf = (m) => {
+  const words = m.split(/\s+/).filter((w) => !GENERIC.has(w.replace(/[.,]$/, '')));
+  return words.length ? words.join(' ').replace(/[.,]$/, '') : '';
+};
+export function classifyStack(h) {
+  const title = h.title || '';
+  const text = `${title}. ${h.blurb || ''}`;
+  for (const re of TOOL_PATTERNS) {
+    const m = text.match(re);
+    const product = m && productOf(m[1]);
+    if (product) {
+      const org = (h.organiser || '').trim();
+      return { kind: 'tool', name: product, label: `Uses ${product}${org && !NOT_A_COMPANY.test(org) && !product.toLowerCase().includes(org.toLowerCase().split(/\s+/)[0]) ? ` (${org.split(/[\s(]/)[0]})` : ''}` };
+    }
+  }
+  const org = (h.organiser || '').trim();
+  if (org && !NOT_A_COMPANY.test(org)) {
+    const tokens = org.split(/[^A-Za-z0-9]+/).filter((t) => t.length >= 3 && !ORG_STOP.has(t.toLowerCase()));
+    const lowerTitle = title.toLowerCase();
+    // The org's name opening a word of the title: "Kiroween" for Kiro, "PayPal AI Hackathon" for PayPal.
+    const hit = tokens.find((t) => new RegExp(`\\b${t.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(lowerTitle));
+    // An organiser named after its own event ("Goa Buildathon") is not a sponsor.
+    const selfNamed = lowerTitle.startsWith(org.toLowerCase()) && /hack|thon|fest|summit|conf/i.test(org);
+    const sponsorRun = h.signals?.managed || BIG_NAMES.test(org);
+    if (hit && !selfNamed && sponsorRun) return { kind: 'company', name: org, label: `Run by ${org.split(/\s+\(/)[0]}` };
+  }
+  return { kind: 'open', name: '', label: 'Open stack' };
+}
+export const STACK_LABEL = { tool: 'Sponsor tool', company: 'Company platform', open: 'Open stack' };
+
 export const MODE_LABEL = { online: 'Online', hybrid: 'Hybrid', 'in-person': 'In person' };
 
 export function prizeInINR(h) {
@@ -156,6 +204,8 @@ export function verdict(h, s) {
 }
 
 export function passes(h, s, place, prefs = DEFAULT_PREFS) {
+  if (prefs.stack === 'open' && classifyStack(h).kind !== 'open') return false;
+  if (prefs.stack === 'sponsored' && classifyStack(h).kind === 'open') return false;
   if (prefs.kinds && !prefs.kinds.includes(classifyKind(h))) return false;
   // Abroad, only events you can join online.
   if (place.mode === 'in-person' && !place.inIndia) return false;

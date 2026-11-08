@@ -24,7 +24,7 @@ export function issueRows(list) {
   return list.map((h) => `
     <li>
       <span class="score">${h.score.total}</span>
-      <span class="t">${esc(h.title)}</span>
+      <span class="t">${esc(h.title)}${h.stack.kind !== 'open' ? ` <span class="tag">${esc(h.stack.label)}</span>` : ''}</span>
       ${h.blurb ? `<span class="b">${esc(h.blurb)}</span>` : ''}
       <span class="f"><span class="measured">${h.score.inr ? esc(formatINR(h.score.inr)) : 'No cash'}</span> prize, <span class="measured">${h.registrations != null ? h.registrations.toLocaleString('en-IN') : 'unknown'}</span> registered, ${esc(h.modeLabel.toLowerCase())}</span>
     </li>`).join('');
@@ -36,7 +36,7 @@ export function topRows(list) {
       <div class="hk__score">${h.score.total}<span class="hk__tier">${h.tier.label}</span></div>
       <div>
         <h3>${esc(h.title)}</h3>
-        <p class="hk__org">${esc(h.organiser || h.source)}, on ${esc(h.source)}</p>
+        <p class="hk__org">${esc(h.organiser || h.source)}, on ${esc(h.source)}${h.stack.kind !== 'open' ? ` <span class="tag">${esc(h.stack.label)}</span>` : ''}</p>
         ${h.blurb ? `<p class="hk__blurb">${esc(h.blurb)}</p>` : ''}
         <dl class="hk__facts">
           <div><dt>Mode</dt><dd class="word">${esc(h.modeLabel)}</dd></div>

@@ -30,6 +30,8 @@ function readState() {
     view: p.get('view') || 'ranked',
     where: p.get('where') || 'any',
     kind: p.get('kind') || 'hackathon',
+    stack: p.get('stack') || 'any',
+    depth: p.get('depth') || 'strong',
     cash: p.get('cash') !== '0',
     sort: p.get('sort') || 'score',
     q: p.get('q') || '',
@@ -73,7 +75,7 @@ async function load() {
 
 function rerank() {
   const s = readState();
-  ranked = rank(data.items, { ...prefs, cashOnly: s.cash, onlineOnly: s.where === 'online', region: s.where === 'online' ? 'any' : s.where, kinds: s.kind === 'all' ? ['hackathon', 'ideathon', 'promptathon'] : [s.kind] });
+  ranked = rank(data.items, { ...prefs, cashOnly: s.cash, onlineOnly: s.where === 'online', region: s.where === 'online' ? 'any' : s.where, kinds: s.kind === 'all' ? ['hackathon', 'ideathon', 'promptathon'] : [s.kind], stack: s.stack });
   render();
 }
 
@@ -86,6 +88,10 @@ function visible() {
     return h.ok && !hidden.has(h.id);
   });
   if (q) list = list.filter((h) => `${h.title} ${h.organiser} ${h.location} ${h.source}`.toLowerCase().includes(q));
+  // The ranked list opens on Strong and Marquee; Decent and Thin wait behind
+  // buttons. A search looks through everything.
+  const pool = list;
+  if (s.view === 'ranked' && !q) list = list.filter((h) => h.score.total >= DEPTH_MIN[s.depth]);
   const by = {
     score: (a, b) => b.score.total - a.score.total,
     closing: (a, b) => (a.score.daysLeft ?? 1e9) - (b.score.daysLeft ?? 1e9),
@@ -93,13 +99,32 @@ function visible() {
     crowd: (a, b) => (b.registrations ?? -1) - (a.registrations ?? -1),
     new: (a, b) => (b.firstSeen || '').localeCompare(a.firstSeen || ''),
   }[s.sort] || ((a, b) => b.score.total - a.score.total);
-  return list.sort(by);
+  return { list: list.sort(by), pool };
+}
+const DEPTH_MIN = { strong: 52, decent: 35, all: 0 };
+
+// ---------- one hackathon row ----------
+function entry(h, s) {
+  return `
+      <li class="entry" data-id="${esc(h.id)}" aria-selected="${h.id === s.id}">
+        <span class="entry__score">${h.score.total}<small>${h.tier.label}</small></span>
+        <a class="entry__title" href="?id=${encodeURIComponent(h.id)}" data-open="${esc(h.id)}">${esc(h.title)}</a>
+        <span class="entry__org">${esc(h.organiser || h.source)}, on ${esc(h.source)}${h.kind !== 'hackathon' ? `<span class="chip chip--cool">${esc(h.kindLabel)}</span>` : ''}${h.stack.kind !== 'open' ? `<span class="chip chip--sponsor" title="${h.stack.kind === 'tool' ? 'The listing says to build with this product' : 'A company challenge, usually built on its own platform'}">${esc(h.stack.label)}</span>` : ''}${isNew(h) ? '<span class="chip chip--new">new</span>' : ''}${shortlist.has(h.id) ? '<span class="chip">shortlisted</span>' : ''}</span>
+        ${h.blurb ? `<p class="entry__blurb">${esc(h.blurb)}</p>` : ''}
+        <dl class="facts-row">
+          <div><dt>Mode</dt><dd class="word">${esc(h.modeLabel)}</dd></div>
+          <div><dt>Location</dt><dd class="word">${esc(h.place.mode === 'online' ? 'Anywhere' : h.where)}</dd></div>
+          <div><dt>Prize pool</dt><dd>${fmtPrize(h)}</dd></div>
+          <div><dt>Registered</dt><dd>${fmtCount(h.registrations)}</dd></div>
+          <div><dt>Closes in</dt><dd>${fmtDays(h.score.daysLeft)}</dd></div>
+        </dl>
+      </li>`;
 }
 
 // ---------- render ----------
 function render() {
   const s = readState();
-  const list = visible();
+  const { list, pool } = visible();
   const okCount = ranked.filter((h) => h.ok && !hidden.has(h.id)).length;
   const strong = ranked.filter((h) => h.ok && !hidden.has(h.id) && h.score.total >= 52).length;
   const fresh = ranked.filter((h) => h.ok && !hidden.has(h.id) && isNew(h)).length;
@@ -120,31 +145,44 @@ function render() {
 
   const rows = $('#rows');
   const notice = $('#notice');
+  const ranking = s.view === 'ranked' && !s.q;
   if (!list.length) {
     rows.innerHTML = '';
     notice.innerHTML = s.view === 'shortlist'
       ? '<div class="notice"><h2>Nothing saved yet</h2><p>Open a hackathon and press Shortlist to keep it here.</p><a class="btn" href="?view=ranked">See the ranked list</a></div>'
       : s.view === 'hidden'
       ? '<div class="notice"><h2>Nothing hidden</h2><p>Hackathons you hide from the ranked list wait here.</p></div>'
+      : ranking && pool.length
+      ? `<div class="notice"><h2>Nothing ${s.depth === 'strong' ? 'Strong or Marquee' : 'Decent or better'} here</h2><p>${pool.length} weaker one${pool.length === 1 ? '' : 's'} fit${pool.length === 1 ? 's' : ''} these filters. Use the buttons below to see them.</p></div>`
       : `<div class="notice"><h2>No hackathon fits these filters</h2><p>${s.q ? `Nothing matches “${esc(s.q)}”.` : 'Try anywhere in India, or allow events without a listed cash prize.'}</p><button class="btn" type="button" data-reset>Clear filters</button></div>`;
     $('[data-reset]')?.addEventListener('click', () => { history.replaceState(null, '', `?view=${s.view}`); syncForm(); rerank(); });
   } else {
     notice.innerHTML = '';
-    rows.innerHTML = list.map((h) => `
-      <li class="entry" data-id="${esc(h.id)}" aria-selected="${h.id === s.id}">
-        <span class="entry__score">${h.score.total}<small>${h.tier.label}</small></span>
-        <a class="entry__title" href="?id=${encodeURIComponent(h.id)}" data-open="${esc(h.id)}">${esc(h.title)}</a>
-        <span class="entry__org">${esc(h.organiser || h.source)}, on ${esc(h.source)}${h.kind !== 'hackathon' ? `<span class="chip chip--cool">${esc(h.kindLabel)}</span>` : ''}${isNew(h) ? '<span class="chip chip--new">new</span>' : ''}${shortlist.has(h.id) ? '<span class="chip">shortlisted</span>' : ''}</span>
-        ${h.blurb ? `<p class="entry__blurb">${esc(h.blurb)}</p>` : ''}
-        <dl class="facts-row">
-          <div><dt>Mode</dt><dd class="word">${esc(h.modeLabel)}</dd></div>
-          <div><dt>Location</dt><dd class="word">${esc(h.place.mode === 'online' ? 'Anywhere' : h.where)}</dd></div>
-          <div><dt>Prize pool</dt><dd>${fmtPrize(h)}</dd></div>
-          <div><dt>Registered</dt><dd>${fmtCount(h.registrations)}</dd></div>
-          <div><dt>Closes in</dt><dd>${fmtDays(h.score.daysLeft)}</dd></div>
-        </dl>
-      </li>`).join('');
+    const ol = (items) => `<ol class="ledger">${items.map((h) => entry(h, s)).join('')}</ol>`;
+    if (ranking && s.sort === 'score') {
+      // New since the last visit first, then what closes within a week, then the rest.
+      const fresh = list.filter(isNew);
+      const week = list.filter((h) => !isNew(h) && h.score.daysLeft != null && h.score.daysLeft <= 7);
+      const later = list.filter((h) => !fresh.includes(h) && !week.includes(h));
+      const group = (title, items, note) => (items.length ? `<section class="group"><h2 class="group__head">${title} <span class="count">${items.length}</span></h2>${note ? `<p class="group__note">${note}</p>` : ''}${ol(items)}</section>` : '');
+      rows.innerHTML = group('New since your last visit', fresh) + group('Closing this week', week, 'Registration ends within seven days.') + group(week.length || fresh.length ? 'Later' : 'Open now', later);
+    } else {
+      rows.innerHTML = ol(list);
+    }
   }
+
+  // Buttons that open the next tier down.
+  const more = $('#more');
+  if (ranking) {
+    const decent = pool.filter((h) => h.score.total >= 35 && h.score.total < 52).length;
+    const thin = pool.filter((h) => h.score.total < 35).length;
+    const btn = (depth, label, primary) => `<button class="btn${primary ? '' : ' btn--quiet'}" type="button" data-depth="${depth}">${label}</button>`;
+    more.innerHTML = s.depth === 'strong'
+      ? `${decent ? btn('decent', `Show ${decent} Decent`, true) : ''}${thin || decent ? btn('all', `Show everything (${decent + thin} more)`) : ''}`
+      : s.depth === 'decent'
+      ? `${thin ? btn('all', `Show ${thin} Thin too`, true) : ''}${btn('strong', 'Only Strong and Marquee')}`
+      : btn('strong', 'Only Strong and Marquee');
+  } else more.innerHTML = '';
   renderReading(ranked.find((h) => h.id === s.id));
 }
 
@@ -202,6 +240,7 @@ function renderReading(h) {
     <dl class="facts">
       <dt>Where</dt><dd>${esc(h.location || h.where)}</dd>
       <dt>Type</dt><dd>${esc(h.kindLabel)}</dd>
+      <dt>Stack</dt><dd>${h.stack.kind === 'tool' ? `${esc(h.stack.label)}. The listing says to build with it.` : h.stack.kind === 'company' ? `${esc(h.stack.label)}. Expect to build on their platform.` : 'Open. Use whatever you like.'}</dd>
       <dt>Mode</dt><dd>${esc(h.modeLabel)}${h.regionLabel ? `, ${esc(h.regionLabel)}` : ''}</dd>
       <dt>Registration closes</dt><dd class="measured">${esc(closes)}</dd>
       ${h.themes?.length ? `<dt>Themes</dt><dd>${esc([...new Set(h.themes)].slice(0, 6).join(', '))}</dd>` : ''}
@@ -250,6 +289,8 @@ document.addEventListener('click', (e) => {
     if (!wasHidden) { setParam('id', ''); toast('Hidden from your ranked list.', () => { hidden.delete(id); store.set('hidden', [...hidden]); setParam('id', id); render(); }); }
     render();
   }
+  const deeper = e.target.closest('[data-depth]');
+  if (deeper) { setParam('depth', deeper.dataset.depth === 'strong' ? '' : deeper.dataset.depth); render(); if (deeper.dataset.depth === 'strong') $('#rows').scrollIntoView({ block: 'start' }); return; }
   const tab = e.target.closest('.tabs a');
   if (tab) { e.preventDefault(); setParam('view', tab.dataset.view === 'ranked' ? '' : tab.dataset.view, true); setParam('id', ''); render(); }
 });
@@ -260,17 +301,18 @@ addEventListener('popstate', () => { syncForm(); render(); });
 const form = $('#filters');
 function syncForm() {
   const s = readState();
-  form.where.value = s.where; form.kind.value = s.kind; form.cash.checked = s.cash; form.sort.value = s.sort; form.q.value = s.q;
+  form.where.value = s.where; form.kind.value = s.kind; form.stack.value = s.stack; form.cash.checked = s.cash; form.sort.value = s.sort; form.q.value = s.q;
 }
 form.addEventListener('submit', (e) => e.preventDefault());
 form.addEventListener('input', (e) => {
   const t = e.target;
   if (t.name === 'where') setParam('where', t.value === 'any' ? '' : t.value);
   if (t.name === 'kind') setParam('kind', t.value === 'hackathon' ? '' : t.value);
+  if (t.name === 'stack') setParam('stack', t.value === 'any' ? '' : t.value);
   if (t.name === 'cash') setParam('cash', t.checked ? '' : '0');
   if (t.name === 'sort') setParam('sort', t.value === 'score' ? '' : t.value);
   if (t.name === 'q') setParam('q', t.value);
-  ['cash', 'where', 'kind'].includes(t.name) ? rerank() : render();
+  ['cash', 'where', 'kind', 'stack'].includes(t.name) ? rerank() : render();
 });
 
 // settings

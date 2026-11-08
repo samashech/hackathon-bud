@@ -51,7 +51,7 @@ function row(h) {
       <td valign="top" style="font:400 15px/1.5 ${sans};color:${C.ink}">
         ${h.kind && h.kind !== 'hackathon' ? `<div style="font:500 12px ${sans};color:${C.cool};padding-bottom:2px">${esc(h.kindLabel)}</div>` : ''}
         <a href="${esc(safeUrl(h.url))}" style="font-weight:500;font-size:17px;line-height:1.3;color:${C.ink};text-decoration:none">${esc(h.title)}</a>
-        <div style="color:${C.muted};font-size:13px;padding-top:2px">${esc(h.organiser || h.source)}</div>
+        <div style="color:${C.muted};font-size:13px;padding-top:2px">${esc(h.organiser || h.source)}${h.stack && h.stack.kind !== 'open' ? ` <span style="display:inline-block;margin-left:4px;padding:1px 6px;border:1px dashed ${C.muted};border-radius:4px;color:${C.ink};font-size:12px">${esc(h.stack.label)}</span>` : ''}</div>
         ${h.blurb ? `<div style="padding-top:8px;color:${C.ink2}">${esc(h.blurb)}</div>` : ''}
         <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:10px;background:${C.well};border-radius:8px;padding:2px 12px"><tr>
           ${fact('Mode', esc(h.modeLabel))}

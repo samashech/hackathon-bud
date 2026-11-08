@@ -11,7 +11,7 @@ async function getJSON(url, init = {}) {
   return res.json();
 }
 
-const ENTITIES = { nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', ndash: '–', mdash: '—', hellip: '…', bull: '•', rarr: '→', middot: '·', copy: '©', reg: '®', trade: '™', rupee: '₹', inr: '₹' };
+const ENTITIES = { nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', ndash: '–', mdash: '—', hellip: '…', bull: '•', rarr: '→', middot: '·', copy: '©', reg: '®', trade: '™', rupee: '₹', inr: '₹', times: '×' };
 const stripTags = (s = '') =>
   s.replace(/<[^>]*>/g, ' ')
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))

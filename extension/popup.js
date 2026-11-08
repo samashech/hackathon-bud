@@ -20,7 +20,7 @@ function render() {
       <li><a href="${esc(safe(h.url))}" target="_blank" rel="noopener" title="${esc(h.verdict)}">
         <span class="score">${h.score.total}</span>
         <span class="title">${esc(h.title)}${unread.includes(h.id) ? '<span class="new">new</span>' : ''}</span>
-        <span class="meta">${esc(h.where)}, <b>${esc(h.score.inr ? formatINR(h.score.inr) : 'no cash listed')}</b>${h.score.daysLeft != null ? `, closes in <b>${Math.max(0, h.score.daysLeft)}d</b>` : ''}</span>
+        <span class="meta">${h.stack && h.stack.kind !== 'open' ? `${esc(h.stack.label)}, ` : ''}${esc(h.where)}, <b>${esc(h.score.inr ? formatINR(h.score.inr) : 'no cash listed')}</b>${h.score.daysLeft != null ? `, closes in <b>${Math.max(0, h.score.daysLeft)}d</b>` : ''}</span>
       </a></li>`).join('');
   }
   const failed = Object.keys(errors);

@@ -1,5 +1,5 @@
 import { SOURCES, fetchDescription } from './sources.mjs';
-import { classifyPlace, classifyKind, scoreHackathon, passes, tier, verdict, placeText, DEFAULT_PREFS, MODE_LABEL, REGION_LABEL, KIND_LABEL } from './score.mjs';
+import { classifyPlace, classifyKind, classifyStack, scoreHackathon, passes, tier, verdict, placeText, DEFAULT_PREFS, MODE_LABEL, REGION_LABEL, KIND_LABEL } from './score.mjs';
 
 export * from './score.mjs';
 
@@ -53,6 +53,7 @@ export function rank(items, prefs = DEFAULT_PREFS, now = Date.now()) {
         ...h,
         kind,
         kindLabel: KIND_LABEL[kind],
+        stack: classifyStack(h),
         place,
         modeLabel: MODE_LABEL[place.mode],
         regionLabel: place.region ? REGION_LABEL[place.region] : '',
